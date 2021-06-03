@@ -16,5 +16,6 @@ namespace AVC.Dtos.AccountDtos
         public string Avatar { get; set; }
         public string Address { get; set; }
         public string Gender { get; set; }
+        public bool? IsAvailable { get; set; }
     }
 }
