@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using Microsoft.AspNetCore.Authorization;
+using System.Linq;
 
 namespace AVC.Extensions.Extensions
 {
@@ -27,5 +28,15 @@ namespace AVC.Extensions.Extensions
             }
             return isNullOrEmpty;
         }
+
+        public class AuthorizeRolesAttribute : AuthorizeAttribute
+        {
+            public AuthorizeRolesAttribute(params string[] roles) : base()
+            {
+                Roles = string.Join(",", roles);
+            }
+        }
+
+        
     }
 }

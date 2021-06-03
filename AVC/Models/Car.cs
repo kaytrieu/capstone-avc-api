@@ -15,18 +15,18 @@ namespace AVC.Models
             Issue = new HashSet<Issue>();
         }
 
-        public string Id { get; set; }
+        public int Id { get; set; }
         public string Image { get; set; }
         public string Name { get; set; }
-        public string SoftVersion { get; set; }
+        public int? SoftVersion { get; set; }
         public bool? IsConnecting { get; set; }
         public bool? IsAvailable { get; set; }
-        public string ModelId { get; set; }
-        public string ConfigId { get; set; }
+        public int? ModelId { get; set; }
+        public int? ConfigId { get; set; }
         public DateTime? CreatedAt { get; set; }
-        public string CreatedBy { get; set; }
         public string DeviceId { get; set; }
         public bool IsApproved { get; set; }
+        public int? CreatedBy { get; set; }
 
         public virtual Configuration Config { get; set; }
         public virtual Account CreatedByNavigation { get; set; }

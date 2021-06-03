@@ -22,6 +22,7 @@ namespace AVC.GenericRepository
         TEntity Get(Expression<Func<TEntity, bool>> predicate, Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>> includer = null);
         void Add(TEntity t);
         void Delete(TEntity t);
+        void Deactivate(TEntity t);
         void Update(TEntity items);
         int SaveChanges();
         Task<int> SaveChangesAsync();

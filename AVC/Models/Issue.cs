@@ -9,9 +9,9 @@ namespace AVC.Models
 {
     public partial class Issue
     {
-        public string Id { get; set; }
+        public int Id { get; set; }
         public int? TypeId { get; set; }
-        public string CarId { get; set; }
+        public int? CarId { get; set; }
         public DateTime? CreatedAt { get; set; }
         public string Image { get; set; }
         public string Description { get; set; }

@@ -1,3 +1,5 @@
+using AVC.GenericRepository;
+using AVC.GenericRepository.Implement;
 using AVC.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -10,6 +12,9 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System;
 using System.Text;
+using AVC.Extension;
+using Microsoft.Extensions.Logging;
+using Serilog;
 
 namespace AVC
 {
@@ -49,11 +54,15 @@ namespace AVC
 
             services.AddControllers();
             services.AddDbContext<AVCContext>(
-                option => option.UseSqlServer(Configuration.GetConnectionString("LocalAVC"))
+                option => option.UseSqlServer(Configuration.GetConnectionString("Default"))
                 );
 
             //Add AutoMapper
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
+            services.AddScoped<IAccountRepository, AccountRepository>();
+            services.AddScoped<IRoleRepository, RoleRepository>();
+
 
             services.AddSwaggerGen(c =>
             {
@@ -87,26 +96,8 @@ namespace AVC
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, Microsoft.Extensions.Logging.ILogger<Startup> logger)
         {
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
-
-            app.UseHttpsRedirection();
-
-            app.UseRouting();
-
-            app.UseAuthorization();
-
-            app.UseAuthentication();
-
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllers();
-            });
-
             int apiVersion = Configuration.GetValue<int>("Version");
 
             app.UseCors(
@@ -120,6 +111,34 @@ namespace AVC
             {
                 c.SwaggerEndpoint("/swagger/v" + apiVersion + "/swagger.json", "AVC System");
             });
+
+            if (env.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+            }
+
+
+            app.UseHttpsRedirection();
+
+            app.UseSerilogRequestLogging();
+
+            app.ConfigureExceptionHandler(logger);
+
+
+            app.UseRouting();
+
+            //authen before author
+            app.UseAuthentication();
+
+            app.UseAuthorization();
+
+
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+            });
+
+            
         }
     }
 }

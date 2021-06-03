@@ -33,16 +33,17 @@ namespace AVC.Models
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            
+            if (!optionsBuilder.IsConfigured)
+            { }
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Account>(entity =>
             {
-                entity.Property(e => e.Id)
-                    .HasMaxLength(10)
-                    .IsUnicode(false);
+                entity.HasIndex(e => e.Email)
+                    .HasName("IX_Account_UniqueEmail")
+                    .IsUnique();
 
                 entity.Property(e => e.Address).HasMaxLength(4000);
 
@@ -52,30 +53,34 @@ namespace AVC.Models
                     .HasColumnType("datetime")
                     .HasDefaultValueSql("((getdate() AT TIME ZONE 'Pacific Standard Time'))");
 
-                entity.Property(e => e.CreatedBy)
-                    .HasMaxLength(10)
-                    .IsUnicode(false);
-
                 entity.Property(e => e.Email)
                     .HasMaxLength(255)
                     .IsUnicode(false);
 
                 entity.Property(e => e.FirstName).HasMaxLength(100);
 
+                entity.Property(e => e.IsAvailable)
+                    .IsRequired()
+                    .HasDefaultValueSql("((1))");
+
                 entity.Property(e => e.LastName).HasMaxLength(100);
 
                 entity.Property(e => e.Password)
                     .IsRequired()
-                    .HasMaxLength(50)
+                    .HasMaxLength(100)
                     .IsUnicode(false);
 
                 entity.Property(e => e.Phone)
                     .HasMaxLength(11)
                     .IsUnicode(false);
 
-                entity.Property(e => e.RoleId)
+                entity.Property(e => e.ResetPasswordToken)
+                    .HasMaxLength(6)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Salt)
                     .IsRequired()
-                    .HasMaxLength(10)
+                    .HasMaxLength(50)
                     .IsUnicode(false);
 
                 entity.HasOne(d => d.CreatedByNavigation)
@@ -97,23 +102,9 @@ namespace AVC.Models
 
             modelBuilder.Entity<AssignedCar>(entity =>
             {
-                entity.HasKey(e => new { e.AccountId, e.CarId });
-
-                entity.Property(e => e.AccountId)
-                    .HasMaxLength(10)
-                    .IsUnicode(false);
-
-                entity.Property(e => e.CarId)
-                    .HasMaxLength(10)
-                    .IsUnicode(false);
-
                 entity.Property(e => e.AssignedAt)
                     .HasColumnType("datetime")
                     .HasDefaultValueSql("((getdate() AT TIME ZONE 'Pacific Standard Time'))");
-
-                entity.Property(e => e.AssignedBy)
-                    .HasMaxLength(10)
-                    .IsUnicode(false);
 
                 entity.Property(e => e.IsAvailable)
                     .IsRequired()
@@ -122,13 +113,12 @@ namespace AVC.Models
                 entity.HasOne(d => d.Account)
                     .WithMany(p => p.AssignedCarAccount)
                     .HasForeignKey(d => d.AccountId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_AssignedCar_Account");
+                    .HasConstraintName("FK_AssignedCar_Account2");
 
                 entity.HasOne(d => d.AssignedByNavigation)
                     .WithMany(p => p.AssignedCarAssignedByNavigation)
                     .HasForeignKey(d => d.AssignedBy)
-                    .HasConstraintName("FK_AssignedCar_Account1");
+                    .HasConstraintName("FK_AssignedCar_Account");
 
                 entity.HasOne(d => d.Car)
                     .WithMany(p => p.AssignedCar)
@@ -139,21 +129,9 @@ namespace AVC.Models
 
             modelBuilder.Entity<Car>(entity =>
             {
-                entity.Property(e => e.Id)
-                    .HasMaxLength(10)
-                    .IsUnicode(false);
-
-                entity.Property(e => e.ConfigId)
-                    .HasMaxLength(10)
-                    .IsUnicode(false);
-
                 entity.Property(e => e.CreatedAt)
                     .HasColumnType("datetime")
                     .HasDefaultValueSql("((getdate() AT TIME ZONE 'Pacific Standard Time'))");
-
-                entity.Property(e => e.CreatedBy)
-                    .HasMaxLength(10)
-                    .IsUnicode(false);
 
                 entity.Property(e => e.DeviceId)
                     .IsRequired()
@@ -166,15 +144,7 @@ namespace AVC.Models
                     .IsRequired()
                     .HasDefaultValueSql("((1))");
 
-                entity.Property(e => e.ModelId)
-                    .HasMaxLength(10)
-                    .IsUnicode(false);
-
                 entity.Property(e => e.Name).HasMaxLength(4000);
-
-                entity.Property(e => e.SoftVersion)
-                    .HasMaxLength(10)
-                    .IsUnicode(false);
 
                 entity.HasOne(d => d.Config)
                     .WithMany(p => p.Car)
@@ -199,10 +169,6 @@ namespace AVC.Models
 
             modelBuilder.Entity<Configuration>(entity =>
             {
-                entity.Property(e => e.Id)
-                    .HasMaxLength(10)
-                    .IsUnicode(false);
-
                 entity.Property(e => e.ConfigUrl).HasMaxLength(4000);
 
                 entity.Property(e => e.CreatedAt)
@@ -220,9 +186,12 @@ namespace AVC.Models
 
             modelBuilder.Entity<Gender>(entity =>
             {
-                entity.Property(e => e.Id).ValueGeneratedNever();
-
                 entity.Property(e => e.Description).HasMaxLength(4000);
+
+                entity.Property(e => e.IsAvailable)
+                    .IsRequired()
+                    .HasColumnName("isAvailable")
+                    .HasDefaultValueSql("((1))");
 
                 entity.Property(e => e.Name)
                     .HasMaxLength(50)
@@ -231,14 +200,6 @@ namespace AVC.Models
 
             modelBuilder.Entity<Issue>(entity =>
             {
-                entity.Property(e => e.Id)
-                    .HasMaxLength(10)
-                    .IsUnicode(false);
-
-                entity.Property(e => e.CarId)
-                    .HasMaxLength(10)
-                    .IsUnicode(false);
-
                 entity.Property(e => e.CreatedAt)
                     .HasColumnType("datetime")
                     .HasDefaultValueSql("((getdate() AT TIME ZONE 'Pacific Standard Time'))");
@@ -279,15 +240,15 @@ namespace AVC.Models
             {
                 entity.Property(e => e.Description).HasMaxLength(4000);
 
+                entity.Property(e => e.IsAvailable)
+                    .IsRequired()
+                    .HasDefaultValueSql("((1))");
+
                 entity.Property(e => e.Name).HasMaxLength(255);
             });
 
             modelBuilder.Entity<ModelVersion>(entity =>
             {
-                entity.Property(e => e.Id)
-                    .HasMaxLength(10)
-                    .IsUnicode(false);
-
                 entity.Property(e => e.CreatedAt)
                     .HasColumnType("datetime")
                     .HasDefaultValueSql("((getdate() AT TIME ZONE 'Pacific Standard Time'))");
@@ -306,11 +267,6 @@ namespace AVC.Models
 
                 entity.Property(e => e.StatisticUrl).HasMaxLength(4000);
 
-                entity.Property(e => e.TrainedBy)
-                    .IsRequired()
-                    .HasMaxLength(10)
-                    .IsUnicode(false);
-
                 entity.HasOne(d => d.ModelStatus)
                     .WithMany(p => p.ModelVersion)
                     .HasForeignKey(d => d.ModelStatusId)
@@ -320,17 +276,16 @@ namespace AVC.Models
                 entity.HasOne(d => d.TrainedByNavigation)
                     .WithMany(p => p.ModelVersion)
                     .HasForeignKey(d => d.TrainedBy)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_Model_Account");
+                    .HasConstraintName("FK_ModelVersion_Account");
             });
 
             modelBuilder.Entity<Role>(entity =>
             {
-                entity.Property(e => e.Id)
-                    .HasMaxLength(10)
-                    .IsUnicode(false);
-
                 entity.Property(e => e.Description).HasMaxLength(4000);
+
+                entity.Property(e => e.IsAvailable)
+                    .IsRequired()
+                    .HasDefaultValueSql("((1))");
 
                 entity.Property(e => e.Name)
                     .HasMaxLength(50)
@@ -339,11 +294,11 @@ namespace AVC.Models
 
             modelBuilder.Entity<SoftwareVersion>(entity =>
             {
-                entity.Property(e => e.Id)
-                    .HasMaxLength(10)
-                    .IsUnicode(false);
-
                 entity.Property(e => e.Description).HasMaxLength(4000);
+
+                entity.Property(e => e.IsAvailable)
+                    .IsRequired()
+                    .HasDefaultValueSql("((1))");
 
                 entity.Property(e => e.Version)
                     .HasMaxLength(50)

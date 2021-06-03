@@ -18,19 +18,21 @@ namespace AVC.Models
             ModelVersion = new HashSet<ModelVersion>();
         }
 
+        public int Id { get; set; }
+        public string Email { get; set; }
         public string Password { get; set; }
-        public string RoleId { get; set; }
+        public string Salt { get; set; }
+        public int RoleId { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
-        public string Email { get; set; }
         public string Phone { get; set; }
-        public int? GenderId { get; set; }
         public string Avatar { get; set; }
-        public string Id { get; set; }
-        public bool IsAvailable { get; set; }
+        public bool? IsAvailable { get; set; }
         public DateTime? CreatedAt { get; set; }
-        public string CreatedBy { get; set; }
         public string Address { get; set; }
+        public int? GenderId { get; set; }
+        public int? CreatedBy { get; set; }
+        public string ResetPasswordToken { get; set; }
 
         public virtual Account CreatedByNavigation { get; set; }
         public virtual Gender Gender { get; set; }

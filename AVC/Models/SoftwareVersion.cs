@@ -14,9 +14,10 @@ namespace AVC.Models
             Car = new HashSet<Car>();
         }
 
-        public string Id { get; set; }
+        public int Id { get; set; }
         public string Version { get; set; }
         public string Description { get; set; }
+        public bool? IsAvailable { get; set; }
 
         public virtual ICollection<Car> Car { get; set; }
     }

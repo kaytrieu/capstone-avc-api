@@ -9,11 +9,12 @@ namespace AVC.Models
 {
     public partial class AssignedCar
     {
-        public string AccountId { get; set; }
-        public string CarId { get; set; }
+        public int CarId { get; set; }
         public bool? IsAvailable { get; set; }
-        public string AssignedBy { get; set; }
         public DateTime? AssignedAt { get; set; }
+        public int Id { get; set; }
+        public int? AccountId { get; set; }
+        public int? AssignedBy { get; set; }
 
         public virtual Account Account { get; set; }
         public virtual Account AssignedByNavigation { get; set; }

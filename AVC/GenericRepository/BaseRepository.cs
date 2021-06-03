@@ -39,6 +39,24 @@ namespace AVC.GenericRepository
 
         }
 
+        public void Deactivate(TEntity t)
+        {
+            if (t != null)
+            {
+                var property = t.GetType().GetProperty("IsAvailable");
+                var propertyValue = (bool?)property.GetValue(t);
+                if (!propertyValue.HasValue)
+                {
+                    // set the value
+                    property.SetValue(t, false);
+                }
+                return;
+            }
+            throw new ArgumentNullException(nameof(TEntity));
+
+        }
+
+
         public TEntity Get(Expression<Func<TEntity, bool>> predicate, params Expression<Func<TEntity, object>>[] including)
         {
             IQueryable<TEntity> query = _dbSet.AsQueryable();

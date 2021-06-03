@@ -14,7 +14,7 @@ namespace AVC.Models
             Car = new HashSet<Car>();
         }
 
-        public string Id { get; set; }
+        public int Id { get; set; }
         public string ModelUrl { get; set; }
         public double? Loss { get; set; }
         public double? Map { get; set; }
@@ -23,10 +23,10 @@ namespace AVC.Models
         public string StatisticUrl { get; set; }
         public int? EpochCount { get; set; }
         public int? ImageCount { get; set; }
-        public string TrainedBy { get; set; }
         public int ModelStatusId { get; set; }
         public string Name { get; set; }
         public string ImageFolderUrl { get; set; }
+        public int? TrainedBy { get; set; }
 
         public virtual ModelStatus ModelStatus { get; set; }
         public virtual Account TrainedByNavigation { get; set; }
