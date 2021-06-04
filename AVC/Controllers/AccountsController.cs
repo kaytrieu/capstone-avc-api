@@ -38,6 +38,13 @@ namespace AVC.Controllers
         }
 
         // GET: api/Accounts/staffs
+        /// <summary>
+        /// Get list of staff
+        /// </summary>
+        /// <param name="page">page number</param>
+        /// <param name="limit">entities number each page</param>
+        /// <param name="searchValue"></param>
+        /// <returns></returns>
         [Authorize]
         [HttpGet("staffs")]
         [AuthorizeRoles(Roles.Admin, Roles.Manager)]
@@ -71,26 +78,15 @@ namespace AVC.Controllers
             return Ok(response);
         }
 
-        //[Authorize]
-        //[HttpDelete("{id}")]
-        //[AuthorizeRoles(Roles.Admin, Roles.Manager)]
-        //public ActionResult DeactivateAccount(int id)
-        //{
-        //    Account accountFromRepo = _repository.Get(x => x.Id == id);
-
-        //    if (accountFromRepo == null)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    _repository.Delete(accountFromRepo);
-
-        //    _repository.SaveChanges();
-
-        //    return NoContent();
-        //}
 
         // GET: api/Accounts/manager
+        /// <summary>
+        /// Get List of Manager
+        /// </summary>
+        /// <param name="page"></param>
+        /// <param name="limit"></param>
+        /// <param name="searchValue"></param>
+        /// <returns></returns>
         [Authorize]
         [HttpGet("managers")]
         [AuthorizeRoles(Roles.Admin)]
@@ -124,6 +120,11 @@ namespace AVC.Controllers
             return Ok(response);
         }
 
+        /// <summary>
+        /// Get Specific Account
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [AuthorizeRoles(Roles.Admin, Roles.Manager)]
         [HttpGet("{id}")]
         public ActionResult<AccountReadDto> GetAccount(int id)
@@ -132,7 +133,7 @@ namespace AVC.Controllers
 
             var role = claims.Where(x => x.Type == ClaimTypes.Role).FirstOrDefault().Value;
 
-            Account account = _repository.Get(x => x.Id == id && x.IsAvailable == true, x => x.Role, x => x.Gender);
+            Account account = _repository.Get(x => x.Id == id, x => x.Role, x => x.Gender, x => x.CreatedByNavigation);
 
             if (role == Roles.Admin)
             {
@@ -160,6 +161,11 @@ namespace AVC.Controllers
 
         // POST: api/Accounts
         //store tạo staff, super tạo store
+        /// <summary>
+        /// Create new Account
+        /// </summary>
+        /// <param name="accountCreateDto"></param>
+        /// <returns>Account for success, 401 for permission denied, 409 for email conflict</returns>
         [AuthorizeRoles(Roles.Admin, Roles.Manager)]
         [HttpPost]
         public ActionResult<AccountReadDto> PostAccount(AccountCreateDto accountCreateDto)
@@ -212,39 +218,90 @@ namespace AVC.Controllers
 
             AccountReadDto accountReadDto = _mapper.Map<AccountReadDto>(accountModel);
 
-            return Ok();
-            //return CreatedAtAction("GetAccount", new { id = accountReadDto.Id }, accountReadDto);
+            //return Ok();
+            return CreatedAtAction("GetAccount", new { id = accountReadDto.Id }, accountReadDto);
 
         }
 
-        //[HttpPatch("{id}")]
-        //public IActionResult PatchAccount(int id, JsonPatchDocument<AccountUpdateDto> patchDoc)
+        /// <summary>
+        /// Activate or Deactivate account
+        /// </summary>
+        /// <param name="id">Id of Account</param>
+        /// <param name="accountActivationDto">IsAvailable: True for activate, false for deactivate</param>
+        /// <returns>Http Status, 204 for success</returns>
+        [AuthorizeRoles(Roles.Admin, Roles.Manager)]
+        [HttpPut("{id}/activation")]
+        public ActionResult SetActivation(int id, AccountActivationDto accountActivationDto)
+        {
+            var claims = (HttpContext.User.Identity as ClaimsIdentity).Claims;
+            var role = claims.Where(x => x.Type == ClaimTypes.Role).FirstOrDefault().Value;
+
+            Account account = _repository.Get(x => x.Id == id, x => x.Role, x => x.Gender, x => x.CreatedByNavigation);
+
+            if (role == Roles.Admin)
+            {
+                if (!(account.Role.Name.Equals(Roles.Manager) || account.Role.Name.Equals(Roles.Staff)))
+                {
+                    return Forbid("Permission Denied");
+                }
+            }
+
+            if (role == Roles.Manager)
+            {
+                if (!(account.Role.Name.Equals(Roles.Staff)))
+                {
+                    return Forbid("Permission Denied");
+                }
+            }
+
+            if (account == null)
+            {
+                return NotFound();
+            }
+
+            //Mapper to Update new password and salt
+            _mapper.Map(accountActivationDto, account);
+
+            _repository.Update(account);
+
+            _repository.SaveChanges();
+
+
+            return NoContent();
+        }
+        
+        
+        //[HttpPost("reset")]
+        //public IActionResult Getemail(string email)
         //{
-        //    Account accountModelFromRepo = _repository.Get(x => x.Id == id);
-
-        //    if (accountModelFromRepo == null)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    AccountUpdateDto accountToPatch = _mapper.Map<AccountUpdateDto>(accountModelFromRepo);
-
-        //    patchDoc.ApplyTo(accountToPatch, ModelState);
-
-        //    if (!TryValidateModel(accountToPatch))
-        //    {
-        //        return ValidationProblem(ModelState);
-        //    }
-
-        //    //Update the DTO to repo
-        //    _mapper.Map(accountToPatch, accountModelFromRepo);
-
-        //    //Temp is not doing nothing
-        //    _repository.Update(accountModelFromRepo);
-
-        //    _repository.SaveChanges();
-
-        //    return NoContent();
+            
+        //        var account = _repository.Get(x => x.Email.Equals(email));
+        //        if (account.Password.Equals(""))
+        //        {
+        //            return StatusCode(400, new { message = "Invalid Email" });
+        //        }
+        //        var accountresponse = _mapper.Map<AccountResponse>(account);
+        //        var tokenstr = GenerateJSONWebToken(accountresponse);
+        //        var resource = SendMail(tokenstr);
+        //        if (resource.Equals("Success"))
+        //        {
+        //            return StatusCode(200, new { message = "Please check your email for password reset instructions" });
+        //        }
+        //        else
+        //        {
+        //            return StatusCode(500, resource);
+        //        }
+            
+        //        return StatusCode(404, "Not found your email");
+            
         //}
+
+        //private bool Exited(string email)
+        //{
+
+        //    return false;
+        //}
+
+
     }
 }
