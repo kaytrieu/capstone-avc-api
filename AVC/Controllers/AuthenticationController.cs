@@ -26,21 +26,31 @@ namespace AVC.Controllers
             _config = config;
         }
 
+        /// <summary>
+        /// Login
+        /// </summary>
+        /// <param name="dto">username and password</param>
+        /// <returns></returns>
         [HttpPost]
-        public ActionResult<AuthenticationReadDto> Login([FromBody] AuthenticationPostDto loginJson)
+        public ActionResult<AuthenticationReadDto> Login([FromBody] AuthenticationPostDto dto)
         {
-            Account accountModel = _repository.Get(x => x.Email == loginJson.Email && x.IsAvailable == true, x => x.Role, x => x.Gender);
+            Account accountModel = _repository.Get(x => x.Email == dto.Email, x => x.Role, x => x.Gender);
 
             if (accountModel == null)
             {
-                return Ok("Invalid Email or Password");
+                return Unauthorized("Invalid Email or Password");
             }
 
-            bool isAuthorized = accountModel.Password.Equals(BCrypt.Net.BCrypt.HashPassword(loginJson.Password, accountModel.Salt));
+            if ((bool)!accountModel.IsAvailable)
+            {
+                return Unauthorized("Your Account is Deactivated");
+            }
+
+            bool isAuthorized = accountModel.Password.Equals(BCrypt.Net.BCrypt.HashPassword(dto.Password, accountModel.Salt));
 
             if (!isAuthorized)
             {
-                return Ok("Invalid Email or Password");
+                return Unauthorized("Invalid Email or Password");
             }
 
             string tokenStr = GenerateJSONWebToken(accountModel);

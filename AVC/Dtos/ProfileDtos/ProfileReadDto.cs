@@ -3,11 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace AVC.Dtos.AccountDtos
+namespace AVC.Dtos.ProfileDtos
 {
-    public class AccountReadDto
+    public class ProfileReadDto
     {
-        public int Id { get; set; }
         public string Email { get; set; }
         public string Role { get; set; }
         public string FirstName { get; set; }
@@ -16,7 +15,5 @@ namespace AVC.Dtos.AccountDtos
         public string Avatar { get; set; }
         public string Address { get; set; }
         public string Gender { get; set; }
-        public bool? IsAvailable { get; set; }
-        public string CreatedByEmail { get; set; }
     }
 }

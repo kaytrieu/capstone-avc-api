@@ -15,6 +15,8 @@ using System.Text;
 using AVC.Extension;
 using Microsoft.Extensions.Logging;
 using Serilog;
+using System.Reflection;
+using System.IO;
 
 namespace AVC
 {
@@ -88,7 +90,13 @@ namespace AVC
                       new string[] { }
                     }
                   });
+
+                // Set the comments path for the Swagger JSON and UI.
+                var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                c.IncludeXmlComments(xmlPath);
             });
+
 
             services.AddRouting(option => option.LowercaseUrls = true);
 
