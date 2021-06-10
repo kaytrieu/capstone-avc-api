@@ -40,7 +40,7 @@ namespace AVC.Controllers
             var id = int.Parse(claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier).Value);
 
 
-            Account accountModel = _repository.Get(x => x.Id == id && x.IsAvailable == true, x => x.Role, x => x.Gender);
+            Account accountModel = _repository.Get(x => x.Id == id && x.IsAvailable == true, x => x.Role);
 
             if (accountModel == null)
             {
@@ -77,7 +77,7 @@ namespace AVC.Controllers
 
             var id = int.Parse(claims.Where(x => x.Type == ClaimTypes.NameIdentifier).FirstOrDefault().Value);
 
-            Account account = _repository.Get(x => x.Id == id && x.IsAvailable == true, x => x.Role, x => x.Gender);
+            Account account = _repository.Get(x => x.Id == id && x.IsAvailable == true, x => x.Role);
 
             if (account == null)
             {

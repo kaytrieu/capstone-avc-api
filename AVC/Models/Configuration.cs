@@ -11,7 +11,7 @@ namespace AVC.Models
     {
         public Configuration()
         {
-            Car = new HashSet<Car>();
+            CarConfig = new HashSet<CarConfig>();
         }
 
         public int Id { get; set; }
@@ -22,6 +22,6 @@ namespace AVC.Models
         public string ConfigUrl { get; set; }
         public int? CreatedBy { get; set; }
 
-        public virtual ICollection<Car> Car { get; set; }
+        public virtual ICollection<CarConfig> CarConfig { get; set; }
     }
 }

@@ -17,6 +17,9 @@ using Microsoft.Extensions.Logging;
 using Serilog;
 using System.Reflection;
 using System.IO;
+using Tagent.EmailService;
+using Tagent.EmailService.Define;
+using Tagent.EmailService.Implement;
 
 namespace AVC
 {
@@ -64,8 +67,12 @@ namespace AVC
 
             services.AddScoped<IAccountRepository, AccountRepository>();
             services.AddScoped<IRoleRepository, RoleRepository>();
-            services.AddScoped<IGenderRepository, GenderRepository>();
+            services.AddScoped<IEmailSender, EmailSender>();
 
+            //email sender
+            var emailConfig = Configuration.GetSection("EmailConfiguration")
+                .Get<EmailConfiguration>();
+            services.AddSingleton(emailConfig);
 
             services.AddSwaggerGen(c =>
             {
@@ -126,6 +133,7 @@ namespace AVC
                 app.UseDeveloperExceptionPage();
             }
 
+            app.UseStaticFiles();
 
             app.UseHttpsRedirection();
 

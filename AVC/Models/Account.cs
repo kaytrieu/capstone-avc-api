@@ -14,8 +14,8 @@ namespace AVC.Models
             AssignedCarAccount = new HashSet<AssignedCar>();
             AssignedCarAssignedByNavigation = new HashSet<AssignedCar>();
             Car = new HashSet<Car>();
-            InverseCreatedByNavigation = new HashSet<Account>();
-            ModelVersion = new HashSet<ModelVersion>();
+            CarConfig = new HashSet<CarConfig>();
+            InverseManagedByNavigation = new HashSet<Account>();
         }
 
         public int Id { get; set; }
@@ -29,18 +29,15 @@ namespace AVC.Models
         public string Avatar { get; set; }
         public bool? IsAvailable { get; set; }
         public DateTime? CreatedAt { get; set; }
-        public string Address { get; set; }
-        public int? GenderId { get; set; }
-        public int? CreatedBy { get; set; }
         public string ResetPasswordToken { get; set; }
+        public int? ManagedBy { get; set; }
 
-        public virtual Account CreatedByNavigation { get; set; }
-        public virtual Gender Gender { get; set; }
+        public virtual Account ManagedByNavigation { get; set; }
         public virtual Role Role { get; set; }
         public virtual ICollection<AssignedCar> AssignedCarAccount { get; set; }
         public virtual ICollection<AssignedCar> AssignedCarAssignedByNavigation { get; set; }
         public virtual ICollection<Car> Car { get; set; }
-        public virtual ICollection<Account> InverseCreatedByNavigation { get; set; }
-        public virtual ICollection<ModelVersion> ModelVersion { get; set; }
+        public virtual ICollection<CarConfig> CarConfig { get; set; }
+        public virtual ICollection<Account> InverseManagedByNavigation { get; set; }
     }
 }

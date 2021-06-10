@@ -5,7 +5,9 @@ using AVC.Dtos.PagingDtos;
 using AVC.Extensions.Extensions;
 using AVC.GenericRepository;
 using AVC.Models;
+using AVC.Service;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -56,9 +58,10 @@ namespace AVC.Controllers
 
             var role = claims.Where(x => x.Type == ClaimTypes.Role).FirstOrDefault().Value;
 
+
             var staffRoleId = _roleRepository.Get(x => x.Name.Equals(Roles.Staff)).Id;
 
-            PagingDto<Account> dto = _repository.GetAllWithOrderedDecs(page, limit, x => x.RoleId == staffRoleId && (x.LastName.Contains(searchValue) || x.FirstName.Contains(searchValue)),x => x.CreatedBy, x => x.Role, x => x.Gender);
+            PagingDto<Account> dto = _repository.GetAllWithOrderedDecs(page, limit, x => x.RoleId == staffRoleId && (x.LastName.Contains(searchValue) || x.FirstName.Contains(searchValue)), x => x.Role);
 
             var accounts = _mapper.Map<IEnumerable<AccountReadDto>>(dto.Result);
 
@@ -100,7 +103,7 @@ namespace AVC.Controllers
 
             var managerRoleId = _roleRepository.Get(x => x.Name.Equals(Roles.Manager)).Id;
 
-            PagingDto<Account> dto = _repository.GetAll(page, limit, x => x.RoleId == managerRoleId && x.IsAvailable == true && (x.LastName.Contains(searchValue) || x.FirstName.Contains(searchValue)), x => x.Role, x => x.Gender);
+            PagingDto<Account> dto = _repository.GetAll(page, limit, x => x.RoleId == managerRoleId && x.IsAvailable == true && (x.LastName.Contains(searchValue) || x.FirstName.Contains(searchValue)), x => x.Role);
 
             var accounts = _mapper.Map<IEnumerable<AccountReadDto>>(dto.Result);
 
@@ -133,7 +136,7 @@ namespace AVC.Controllers
 
             var role = claims.Where(x => x.Type == ClaimTypes.Role).FirstOrDefault().Value;
 
-            Account account = _repository.Get(x => x.Id == id, x => x.Role, x => x.Gender, x => x.CreatedByNavigation);
+            Account account = _repository.Get(x => x.Id == id, x => x.Role, x => x.ManagedByNavigation);
 
             if (role == Roles.Admin)
             {
@@ -214,7 +217,7 @@ namespace AVC.Controllers
                     throw ex;
                 }
             }
-            accountModel = _repository.Get(x => x.Id == accountModel.Id, x => x.Role, x => x.Gender);
+            accountModel = _repository.Get(x => x.Id == accountModel.Id, x => x.Role);
 
             AccountReadDto accountReadDto = _mapper.Map<AccountReadDto>(accountModel);
 
@@ -236,7 +239,7 @@ namespace AVC.Controllers
             var claims = (HttpContext.User.Identity as ClaimsIdentity).Claims;
             var role = claims.Where(x => x.Type == ClaimTypes.Role).FirstOrDefault().Value;
 
-            Account account = _repository.Get(x => x.Id == id, x => x.Role, x => x.Gender, x => x.CreatedByNavigation);
+            Account account = _repository.Get(x => x.Id == id, x => x.Role, x => x.ManagedByNavigation);
 
             if (role == Roles.Admin)
             {
@@ -269,39 +272,19 @@ namespace AVC.Controllers
 
             return NoContent();
         }
-        
-        
-        //[HttpPost("reset")]
-        //public IActionResult Getemail(string email)
-        //{
-            
-        //        var account = _repository.Get(x => x.Email.Equals(email));
-        //        if (account.Password.Equals(""))
-        //        {
-        //            return StatusCode(400, new { message = "Invalid Email" });
-        //        }
-        //        var accountresponse = _mapper.Map<AccountResponse>(account);
-        //        var tokenstr = GenerateJSONWebToken(accountresponse);
-        //        var resource = SendMail(tokenstr);
-        //        if (resource.Equals("Success"))
-        //        {
-        //            return StatusCode(200, new { message = "Please check your email for password reset instructions" });
-        //        }
-        //        else
-        //        {
-        //            return StatusCode(500, resource);
-        //        }
-            
-        //        return StatusCode(404, "Not found your email");
-            
-        //}
 
-        //private bool Exited(string email)
-        //{
+        [HttpPost("image")]
+        public ActionResult testUploadImage(IFormFile image)
+        {
+            string imageUrl = string.Empty;
 
-        //    return false;
-        //}
+            if (image != null && image.Length > 0)
+            {
+                imageUrl = FirebaseService.UploadFileToFirebaseStorage(image.OpenReadStream(), DateTime.Now.ToString("dd-MM-yyyy-HH-mm-ss-ff_") + image.FileName, "Images", _config).Result;
+            }
 
+            return Ok(imageUrl);
+        }
 
     }
 }

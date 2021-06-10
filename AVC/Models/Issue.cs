@@ -16,6 +16,7 @@ namespace AVC.Models
         public string Image { get; set; }
         public string Description { get; set; }
         public bool? IsAvailable { get; set; }
+        public string Location { get; set; }
 
         public virtual Car Car { get; set; }
         public virtual IssueType Type { get; set; }
