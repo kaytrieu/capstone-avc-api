@@ -29,9 +29,6 @@ namespace AVC.Dtos.AccountDtos
         public string Phone { get; set; }
         [Url]
         public string Avatar { get; set; }
-        public string Address { get; set; }
-        [Required]
-        public int? GenderId { get; set; }
         public int? CreatedBy { get; private set; }
 
         public void SetCreatedById(int createdId)

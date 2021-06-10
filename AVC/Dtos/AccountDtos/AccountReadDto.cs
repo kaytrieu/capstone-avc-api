@@ -14,8 +14,6 @@ namespace AVC.Dtos.AccountDtos
         public string LastName { get; set; }
         public string Phone { get; set; }
         public string Avatar { get; set; }
-        public string Address { get; set; }
-        public string Gender { get; set; }
         public bool? IsAvailable { get; set; }
         public string CreatedByEmail { get; set; }
     }

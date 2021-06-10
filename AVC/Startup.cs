@@ -64,7 +64,6 @@ namespace AVC
 
             services.AddScoped<IAccountRepository, AccountRepository>();
             services.AddScoped<IRoleRepository, RoleRepository>();
-            services.AddScoped<IGenderRepository, GenderRepository>();
 
 
             services.AddSwaggerGen(c =>

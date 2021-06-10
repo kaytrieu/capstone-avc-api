@@ -22,19 +22,16 @@ namespace AVC.Models
         public virtual DbSet<Account> Account { get; set; }
         public virtual DbSet<AssignedCar> AssignedCar { get; set; }
         public virtual DbSet<Car> Car { get; set; }
+        public virtual DbSet<CarConfig> CarConfig { get; set; }
         public virtual DbSet<Configuration> Configuration { get; set; }
-        public virtual DbSet<Gender> Gender { get; set; }
         public virtual DbSet<Issue> Issue { get; set; }
         public virtual DbSet<IssueType> IssueType { get; set; }
         public virtual DbSet<ModelStatus> ModelStatus { get; set; }
         public virtual DbSet<ModelVersion> ModelVersion { get; set; }
         public virtual DbSet<Role> Role { get; set; }
-        public virtual DbSet<SoftwareVersion> SoftwareVersion { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            if (!optionsBuilder.IsConfigured)
-            { }
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -44,8 +41,6 @@ namespace AVC.Models
                 entity.HasIndex(e => e.Email)
                     .HasName("IX_Account_UniqueEmail")
                     .IsUnique();
-
-                entity.Property(e => e.Address).HasMaxLength(4000);
 
                 entity.Property(e => e.Avatar).HasMaxLength(4000);
 
@@ -83,15 +78,10 @@ namespace AVC.Models
                     .HasMaxLength(50)
                     .IsUnicode(false);
 
-                entity.HasOne(d => d.CreatedByNavigation)
-                    .WithMany(p => p.InverseCreatedByNavigation)
-                    .HasForeignKey(d => d.CreatedBy)
-                    .HasConstraintName("FK_Account_Account");
-
-                entity.HasOne(d => d.Gender)
-                    .WithMany(p => p.Account)
-                    .HasForeignKey(d => d.GenderId)
-                    .HasConstraintName("FK_Account_Gender");
+                entity.HasOne(d => d.ManagedByNavigation)
+                    .WithMany(p => p.InverseManagedByNavigation)
+                    .HasForeignKey(d => d.ManagedBy)
+                    .HasConstraintName("FK_Account_Account1");
 
                 entity.HasOne(d => d.Role)
                     .WithMany(p => p.Account)
@@ -109,6 +99,8 @@ namespace AVC.Models
                 entity.Property(e => e.IsAvailable)
                     .IsRequired()
                     .HasDefaultValueSql("((1))");
+
+                entity.Property(e => e.RemoveAt).HasColumnType("datetime");
 
                 entity.HasOne(d => d.Account)
                     .WithMany(p => p.AssignedCarAccount)
@@ -146,25 +138,42 @@ namespace AVC.Models
 
                 entity.Property(e => e.Name).HasMaxLength(4000);
 
-                entity.HasOne(d => d.Config)
+                entity.HasOne(d => d.ManagedByNavigation)
                     .WithMany(p => p.Car)
-                    .HasForeignKey(d => d.ConfigId)
-                    .HasConstraintName("FK_Car_Configuration");
-
-                entity.HasOne(d => d.CreatedByNavigation)
-                    .WithMany(p => p.Car)
-                    .HasForeignKey(d => d.CreatedBy)
+                    .HasForeignKey(d => d.ManagedBy)
                     .HasConstraintName("FK_Car_Account");
 
                 entity.HasOne(d => d.Model)
                     .WithMany(p => p.Car)
                     .HasForeignKey(d => d.ModelId)
                     .HasConstraintName("FK_Car_Model");
+            });
 
-                entity.HasOne(d => d.SoftVersionNavigation)
-                    .WithMany(p => p.Car)
-                    .HasForeignKey(d => d.SoftVersion)
-                    .HasConstraintName("FK_Car_SoftwareVersion");
+            modelBuilder.Entity<CarConfig>(entity =>
+            {
+                entity.Property(e => e.ConfigAt).HasColumnType("datetime");
+
+                entity.Property(e => e.IsAvailable)
+                    .IsRequired()
+                    .HasDefaultValueSql("((1))");
+
+                entity.Property(e => e.RemoveAt).HasColumnType("datetime");
+
+                entity.HasOne(d => d.Car)
+                    .WithMany(p => p.CarConfig)
+                    .HasForeignKey(d => d.CarId)
+                    .HasConstraintName("FK_CarConfig_Car");
+
+                entity.HasOne(d => d.ConfigByNavigation)
+                    .WithMany(p => p.CarConfig)
+                    .HasForeignKey(d => d.ConfigBy)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_CarConfig_Account");
+
+                entity.HasOne(d => d.Config)
+                    .WithMany(p => p.CarConfig)
+                    .HasForeignKey(d => d.ConfigId)
+                    .HasConstraintName("FK_CarConfig_Configuration");
             });
 
             modelBuilder.Entity<Configuration>(entity =>
@@ -184,20 +193,6 @@ namespace AVC.Models
                 entity.Property(e => e.Name).HasMaxLength(50);
             });
 
-            modelBuilder.Entity<Gender>(entity =>
-            {
-                entity.Property(e => e.Description).HasMaxLength(4000);
-
-                entity.Property(e => e.IsAvailable)
-                    .IsRequired()
-                    .HasColumnName("isAvailable")
-                    .HasDefaultValueSql("((1))");
-
-                entity.Property(e => e.Name)
-                    .HasMaxLength(50)
-                    .IsUnicode(false);
-            });
-
             modelBuilder.Entity<Issue>(entity =>
             {
                 entity.Property(e => e.CreatedAt)
@@ -212,10 +207,12 @@ namespace AVC.Models
                     .IsRequired()
                     .HasDefaultValueSql("((1))");
 
+                entity.Property(e => e.Location).HasMaxLength(100);
+
                 entity.HasOne(d => d.Car)
                     .WithMany(p => p.Issue)
                     .HasForeignKey(d => d.CarId)
-                    .HasConstraintName("FK_Log_Car");
+                    .HasConstraintName("FK_Issue_Car");
 
                 entity.HasOne(d => d.Type)
                     .WithMany(p => p.Issue)
@@ -272,11 +269,6 @@ namespace AVC.Models
                     .HasForeignKey(d => d.ModelStatusId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_ModelVersion_ModelStatus");
-
-                entity.HasOne(d => d.TrainedByNavigation)
-                    .WithMany(p => p.ModelVersion)
-                    .HasForeignKey(d => d.TrainedBy)
-                    .HasConstraintName("FK_ModelVersion_Account");
             });
 
             modelBuilder.Entity<Role>(entity =>
@@ -288,19 +280,6 @@ namespace AVC.Models
                     .HasDefaultValueSql("((1))");
 
                 entity.Property(e => e.Name)
-                    .HasMaxLength(50)
-                    .IsUnicode(false);
-            });
-
-            modelBuilder.Entity<SoftwareVersion>(entity =>
-            {
-                entity.Property(e => e.Description).HasMaxLength(4000);
-
-                entity.Property(e => e.IsAvailable)
-                    .IsRequired()
-                    .HasDefaultValueSql("((1))");
-
-                entity.Property(e => e.Version)
                     .HasMaxLength(50)
                     .IsUnicode(false);
             });

@@ -5,9 +5,14 @@ using AVC.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using System;
+using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using System.Security.Claims;
 using System.Text;
+using Tagent.EmailService;
+using Tagent.EmailService.Define;
 
 namespace AVC.Controllers
 {
@@ -18,12 +23,14 @@ namespace AVC.Controllers
         private readonly IAccountRepository _repository;
         private readonly IMapper _mapper;
         private readonly IConfiguration _config;
+        private readonly IEmailSender _emailSender;
 
-        public AuthenticationController(IAccountRepository repository, IMapper mapper, IConfiguration config)
+        public AuthenticationController(IAccountRepository repository, IMapper mapper, IConfiguration config, IEmailSender emailSender)
         {
             _repository = repository;
             _mapper = mapper;
             _config = config;
+            _emailSender = emailSender;
         }
 
         /// <summary>
@@ -34,7 +41,7 @@ namespace AVC.Controllers
         [HttpPost]
         public ActionResult<AuthenticationReadDto> Login([FromBody] AuthenticationPostDto dto)
         {
-            Account accountModel = _repository.Get(x => x.Email == dto.Email, x => x.Role, x => x.Gender);
+            Account accountModel = _repository.Get(x => x.Email == dto.Email, x => x.Role);
 
             if (accountModel == null)
             {

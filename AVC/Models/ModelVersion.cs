@@ -26,10 +26,8 @@ namespace AVC.Models
         public int ModelStatusId { get; set; }
         public string Name { get; set; }
         public string ImageFolderUrl { get; set; }
-        public int? TrainedBy { get; set; }
 
         public virtual ModelStatus ModelStatus { get; set; }
-        public virtual Account TrainedByNavigation { get; set; }
         public virtual ICollection<Car> Car { get; set; }
     }
 }

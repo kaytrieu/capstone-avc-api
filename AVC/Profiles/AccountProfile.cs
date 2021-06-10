@@ -17,11 +17,9 @@ namespace AVC.Profiles
                 .ForMember(des => des.Password, opt => opt.MapFrom(src => src.NewPassword));
             CreateMap<Account, AccountReadDto>()
                 .ForMember(des => des.Role, opt => opt.MapFrom(src => src.Role.Name))
-                .ForMember(des => des.Gender, opt => opt.MapFrom(src => src.Gender.Name))
-                .ForMember(des => des.CreatedByEmail, opt => opt.MapFrom(src => src.CreatedByNavigation.Email));
+                .ForMember(des => des.CreatedByEmail, opt => opt.MapFrom(src => src.ManagedByNavigation.Email));
             CreateMap<Account, ProfileReadDto>()
-                .ForMember(des => des.Role, opt => opt.MapFrom(src => src.Role.Name))
-                .ForMember(des => des.Gender, opt => opt.MapFrom(src => src.Gender.Name));
+                .ForMember(des => des.Role, opt => opt.MapFrom(src => src.Role.Name));
         }
 
     }
