@@ -66,8 +66,56 @@ namespace AVC.Controllers
             authenticationReadDto.Token = tokenStr;
 
             return Ok(authenticationReadDto);
+        }
+
+        #region TODO reset password
+        [HttpPost("reset")]
+        public IActionResult Getemail(string email)
+        {
+            var account = _repository.Get(x => x.Email.Equals(email));
+            if (account == null || account.Password.Equals(""))
+            {
+                return StatusCode(404, new { message = "Invalid Email" });
+            }
+
+            Random generator = new Random();
+            var securityKey = generator.Next(0, 1000000).ToString("D6");
+
+            account.ResetPasswordToken = securityKey;
+            _repository.SaveChanges();
+
+            var resource = SendMail(securityKey, account);
+            if (resource.Equals("Success"))
+            {
+                return StatusCode(200, new { message = "Please check your email for password reset instructions" });
+            }
+            else
+            {
+                return StatusCode(500, resource);
+            }
 
         }
+
+        private string SendMail(string securityKey, Account account)
+        {
+            var email = account.Email;
+            List<string> listemail = new List<string>
+            {
+                email
+            };
+            string link = _config.GetValue<String>("ResetPasswordLink");
+            var template = Properties.Resources.password_reset
+                .Replace("[account_name]",account.FirstName + account.LastName)
+                .Replace("[security_key]",securityKey)
+                .Replace("[reset_password_link]",link)
+                .Replace("[link_to_logo]", Request.Host + "/image/logo.png");
+            var message = new Message(listemail, "[AVC System] Reset Your Password", template);
+            _emailSender.SendEmail(message);
+            return "Success";
+
+        }
+
+        #endregion
 
         private string GenerateJSONWebToken(Account accountModel)
         {
