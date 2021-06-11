@@ -1,2 +1,1 @@
-AVC API
-Autonomous Vehicle with Camera System.
+AVC API - Autonomous Vehicle with Camera System.
