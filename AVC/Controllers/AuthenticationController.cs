@@ -103,12 +103,13 @@ namespace AVC.Controllers
             {
                 email
             };
-            string link = _config.GetValue<String>("ResetPasswordLink");
+            string linkEmail = _config.GetValue<String>("ResetPasswordLink");
+            string linkLogo = _config.GetValue<String>("LogoLink");
             var template = Properties.Resources.password_reset
                 .Replace("[account_name]",account.FirstName + account.LastName)
                 .Replace("[security_key]",securityKey)
-                .Replace("[reset_password_link]",link)
-                .Replace("[link_to_logo]", Request.Host + "/image/logo.png");
+                .Replace("[reset_password_link]",linkEmail)
+                .Replace("[link_to_logo]", linkLogo);
             var message = new Message(listemail, "[AVC System] Reset Your Password", template);
             _emailSender.SendEmail(message);
             return "Success";

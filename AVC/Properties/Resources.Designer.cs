@@ -79,7 +79,7 @@ namespace AVC.Properties {
         ///        font-family: &apos;Source Sans Pro&apos;;
         ///        font-style: normal;
         ///        font-weight: 400;
-        ///        src: local(&apos;Source S [rest of string was truncated]&quot;;.
+        ///        sr [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string password_reset {
             get {
