@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace AVC.Dtos.AccountDtos
 {
-    public class AccountReadDto
+    public class AccountManagerReadDto
     {
         public int Id { get; set; }
         public string Email { get; set; }
@@ -15,6 +15,5 @@ namespace AVC.Dtos.AccountDtos
         public string Phone { get; set; }
         public string Avatar { get; set; }
         public bool? IsAvailable { get; set; }
-        public string CreatedByEmail { get; set; }
     }
 }

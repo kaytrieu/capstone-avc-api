@@ -11,13 +11,16 @@ namespace AVC.Profiles
         {
             //Source to Target
             CreateMap<Account, AccountReadAfterAuthenDto>();
-            CreateMap<AccountCreateDto, Account>();
+            CreateMap<AccountStaffCreateDto, Account>();
+            CreateMap<AccountManagerCreateDto, Account>();
             CreateMap<AccountActivationDto, Account>();
             CreateMap<ProfilePasswordUpdateDto, Account>()
                 .ForMember(des => des.Password, opt => opt.MapFrom(src => src.NewPassword));
-            CreateMap<Account, AccountReadDto>()
+            CreateMap<Account, AccountManagerReadDto>()
+               .ForMember(des => des.Role, opt => opt.MapFrom(src => src.Role.Name));
+            CreateMap<Account, AccountStaffReadDto>()
                 .ForMember(des => des.Role, opt => opt.MapFrom(src => src.Role.Name))
-                .ForMember(des => des.CreatedByEmail, opt => opt.MapFrom(src => src.ManagedByNavigation.Email));
+                .ForMember(des => des.ManagedByEmail, opt => opt.MapFrom(src => src.ManagedByNavigation.Email));
             CreateMap<Account, ProfileReadDto>()
                 .ForMember(des => des.Role, opt => opt.MapFrom(src => src.Role.Name));
         }

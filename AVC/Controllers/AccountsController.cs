@@ -2,6 +2,7 @@
 using AVC.Constant;
 using AVC.Dtos.AccountDtos;
 using AVC.Dtos.PagingDtos;
+using AVC.Dtos.ReponseDtos;
 using AVC.Extensions.Extensions;
 using AVC.GenericRepository;
 using AVC.Models;
@@ -50,7 +51,7 @@ namespace AVC.Controllers
         [Authorize]
         [HttpGet("staffs")]
         [AuthorizeRoles(Roles.Admin, Roles.Manager)]
-        public ActionResult<PagingResponseDto<AccountReadDto>> GetStaffAccounts(int page = 1, int limit = 10, string searchValue = "")
+        public ActionResult<PagingResponseDto<AccountStaffReadDto>> GetStaffAccounts(int page = 1, int limit = 10, string searchValue = "")
         {
             searchValue = searchValue.IsNullOrEmpty() ? "" : searchValue.Trim();
 
@@ -58,14 +59,24 @@ namespace AVC.Controllers
 
             var role = claims.Where(x => x.Type == ClaimTypes.Role).FirstOrDefault().Value;
 
-
             var staffRoleId = _roleRepository.Get(x => x.Name.Equals(Roles.Staff)).Id;
 
-            PagingDto<Account> dto = _repository.GetAllWithOrderedDecs(page, limit, x => x.RoleId == staffRoleId && (x.LastName.Contains(searchValue) || x.FirstName.Contains(searchValue)), x => x.Role);
+            PagingDto<Account> dto = null;
 
-            var accounts = _mapper.Map<IEnumerable<AccountReadDto>>(dto.Result);
+            if (role.Equals(Roles.Manager))
+            {
+                var managerId = int.Parse(claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier).Value);
 
-            var response = new PagingResponseDto<AccountReadDto> { Result = accounts, Count = dto.Count };
+                dto = _repository.GetAllWithOrderedDecs(page, limit, x => x.RoleId == staffRoleId && x.ManagedBy == managerId && (x.LastName.Contains(searchValue) || x.FirstName.Contains(searchValue)), x => x.Role);
+            }
+            else
+            {
+                dto = _repository.GetAllWithOrderedDecs(page, limit, x => x.RoleId == staffRoleId && (x.LastName.Contains(searchValue) || x.FirstName.Contains(searchValue)), x => x.Role);
+            }
+
+            var accounts = _mapper.Map<IEnumerable<AccountStaffReadDto>>(dto.Result);
+
+            var response = new PagingResponseDto<AccountStaffReadDto> { Result = accounts, Count = dto.Count };
 
             if (limit > 0)
             {
@@ -93,7 +104,7 @@ namespace AVC.Controllers
         [Authorize]
         [HttpGet("managers")]
         [AuthorizeRoles(Roles.Admin)]
-        public ActionResult<PagingResponseDto<AccountReadDto>> GetManagerAccounts(int page = 1, int limit = 10, string searchValue = "")
+        public ActionResult<PagingResponseDto<AccountManagerReadDto>> GetManagerAccounts(int page = 1, int limit = 10, string searchValue = "")
         {
             searchValue = searchValue.IsNullOrEmpty() ? "" : searchValue.Trim();
 
@@ -105,9 +116,9 @@ namespace AVC.Controllers
 
             PagingDto<Account> dto = _repository.GetAll(page, limit, x => x.RoleId == managerRoleId && x.IsAvailable == true && (x.LastName.Contains(searchValue) || x.FirstName.Contains(searchValue)), x => x.Role);
 
-            var accounts = _mapper.Map<IEnumerable<AccountReadDto>>(dto.Result);
+            var accounts = _mapper.Map<IEnumerable<AccountManagerReadDto>>(dto.Result);
 
-            var response = new PagingResponseDto<AccountReadDto> { Result = accounts, Count = dto.Count };
+            var response = new PagingResponseDto<AccountManagerReadDto> { Result = accounts, Count = dto.Count };
 
             if (limit > 0)
             {
@@ -128,75 +139,68 @@ namespace AVC.Controllers
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        [AuthorizeRoles(Roles.Admin, Roles.Manager)]
-        [HttpGet("{id}")]
-        public ActionResult<AccountReadDto> GetAccount(int id)
+        [AuthorizeRoles(Roles.Admin)]
+        [HttpGet("manager/{id}")]
+        public ActionResult<AccountManagerReadDto> GetManagerAccount(int id)
         {
             var claims = (HttpContext.User.Identity as ClaimsIdentity).Claims;
 
             var role = claims.Where(x => x.Type == ClaimTypes.Role).FirstOrDefault().Value;
 
-            Account account = _repository.Get(x => x.Id == id, x => x.Role, x => x.ManagedByNavigation);
+            Account account = _repository.Get(x => x.Id == id && x.Role.Name.Equals(Roles.Manager), x => x.Role);
 
-            if (role == Roles.Admin)
+            if (account == null)
             {
-                if (!(account.Role.Name.Equals(Roles.Manager) || account.Role.Name.Equals(Roles.Staff)))
-                {
-                    return Forbid("Permission Denied");
-                }
+                return StatusCode(StatusCodes.Status404NotFound, new ErrorResponseDto("Can not found account."));
+            }
+
+            return Ok(_mapper.Map<AccountManagerReadDto>(account));
+        }
+
+        /// <summary>
+        /// Get Specific Account
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [AuthorizeRoles(Roles.Admin, Roles.Manager)]
+        [HttpGet("staff/{id}")]
+        public ActionResult<AccountManagerReadDto> GetStaffAccount(int id)
+        {
+            var claims = (HttpContext.User.Identity as ClaimsIdentity).Claims;
+
+            var role = claims.Where(x => x.Type == ClaimTypes.Role).FirstOrDefault().Value;
+
+            Account account = _repository.Get(x => x.Id == id && x.Role.Name.Equals(Roles.Staff), x => x.Role, x => x.ManagedByNavigation);
+
+            if (account == null)
+            {
+                return StatusCode(StatusCodes.Status404NotFound, new ErrorResponseDto("Can not found account."));
             }
 
             if (role == Roles.Manager)
             {
-                if (!(account.Role.Name.Equals(Roles.Staff)))
+                var managerId = int.Parse(claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier).Value);
+
+                if (account.ManagedBy != managerId)
                 {
-                    return Forbid("Permission Denied");
+                    return StatusCode(StatusCodes.Status403Forbidden, new ErrorResponseDto("Permission Denied"));
                 }
             }
 
-            if (account == null)
-            {
-                return NotFound();
-            }
-
-            return Ok(_mapper.Map<AccountReadDto>(account));
+            return Ok(_mapper.Map<AccountManagerReadDto>(account));
         }
 
         // POST: api/Accounts
-        //store tạo staff, super tạo store
         /// <summary>
         /// Create new Account
         /// </summary>
         /// <param name="accountCreateDto"></param>
         /// <returns>Account for success, 401 for permission denied, 409 for email conflict</returns>
-        [AuthorizeRoles(Roles.Admin, Roles.Manager)]
-        [HttpPost]
-        public ActionResult<AccountReadDto> PostAccount(AccountCreateDto accountCreateDto)
+        [AuthorizeRoles(Roles.Admin)]
+        [HttpPost("manager")]
+        public ActionResult<AccountManagerReadDto> PostAccount(AccountManagerCreateDto accountCreateDto)
         {
             var claims = (HttpContext.User.Identity as ClaimsIdentity).Claims;
-
-            var role = claims.Where(x => x.Type == ClaimTypes.Role).FirstOrDefault().Value;
-
-            var roleName = _roleRepository.Get(x => x.Id == accountCreateDto.RoleId).Name;
-
-            if (role == Roles.Admin)
-            {
-                if (!(roleName == Roles.Manager))
-                {
-                    return Forbid("Permission Denied");
-                }
-            }
-
-            if (role == Roles.Manager)
-            {
-                if (!(roleName == Roles.Staff))
-                {
-                    return Forbid("Permission Denied");
-                }
-            }
-
-            var actorId = claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier).Value;
-            accountCreateDto.SetCreatedById(int.Parse(actorId));
 
             Account accountModel = _mapper.Map<Account>(accountCreateDto);
 
@@ -210,7 +214,7 @@ namespace AVC.Controllers
             {
                 if (ex.InnerException.ToString().Contains("duplicate"))
                 {
-                    return Conflict("Existed Email");
+                    return StatusCode(StatusCodes.Status409Conflict, new ErrorResponseDto("Existed Email"));
                 }
                 else
                 {
@@ -219,11 +223,49 @@ namespace AVC.Controllers
             }
             accountModel = _repository.Get(x => x.Id == accountModel.Id, x => x.Role);
 
-            AccountReadDto accountReadDto = _mapper.Map<AccountReadDto>(accountModel);
+            AccountManagerReadDto accountReadDto = _mapper.Map<AccountManagerReadDto>(accountModel);
+            
+            //TODO: Send Validate Email
 
             //return Ok();
-            return CreatedAtAction("GetAccount", new { id = accountReadDto.Id }, accountReadDto);
+            return CreatedAtAction("GetManagerAccount", new { id = accountReadDto.Id }, accountReadDto);
+        }
 
+        // POST: api/Accounts
+        /// <summary>
+        /// Create new Account
+        /// </summary>
+        /// <param name="accountCreateDto"></param>
+        /// <returns>Account for success, 401 for permission denied, 409 for email conflict</returns>
+        [AuthorizeRoles(Roles.Admin)]
+        [HttpPost("staff")]
+        public ActionResult<AccountStaffReadDto> PostStaffAccount(AccountStaffCreateDto accountCreateDto)
+        {
+            Account accountModel = _mapper.Map<Account>(accountCreateDto);
+
+            _repository.Add(accountModel);
+
+            try
+            {
+                _repository.SaveChanges();
+            }
+            catch (DbUpdateException ex)
+            {
+                if (ex.InnerException.ToString().Contains("duplicate"))
+                {
+                    return StatusCode(StatusCodes.Status409Conflict, new ErrorResponseDto("Existed Email"));
+                }
+                else
+                {
+                    throw ex;
+                }
+            }
+            accountModel = _repository.Get(x => x.Id == accountModel.Id, x => x.Role, x => x.ManagedByNavigation);
+
+            AccountStaffReadDto accountReadDto = _mapper.Map<AccountStaffReadDto>(accountModel);
+
+            //return Ok();
+            return CreatedAtAction("GetStaffAccount", new { id = accountReadDto.Id }, accountReadDto);
         }
 
         /// <summary>
@@ -245,7 +287,7 @@ namespace AVC.Controllers
             {
                 if (!(account.Role.Name.Equals(Roles.Manager) || account.Role.Name.Equals(Roles.Staff)))
                 {
-                    return Forbid("Permission Denied");
+                    return StatusCode(StatusCodes.Status403Forbidden, new ErrorResponseDto("Permission Denied"));
                 }
             }
 
@@ -253,13 +295,13 @@ namespace AVC.Controllers
             {
                 if (!(account.Role.Name.Equals(Roles.Staff)))
                 {
-                    return Forbid("Permission Denied");
+                    return StatusCode(StatusCodes.Status403Forbidden, new ErrorResponseDto("Permission Denied"));
                 }
             }
 
             if (account == null)
             {
-                return NotFound();
+                return NotFound(new ErrorResponseDto("Can not found account."));
             }
 
             //Mapper to Update new password and salt
@@ -274,7 +316,7 @@ namespace AVC.Controllers
         }
 
         [HttpPost("image")]
-        public ActionResult testUploadImage(IFormFile image)
+        public ActionResult UploadImage(IFormFile image)
         {
             string imageUrl = string.Empty;
 

@@ -10,6 +10,9 @@ namespace AVC.Constant
         public const string Admin = "Admin";
         public const string Manager = "Manager";
         public const string Staff = "Staff";
+        public const int AdminId = 2;
+        public const int ManagerId = 3;
+        public const int StaffId = 4;
     }
 
 }

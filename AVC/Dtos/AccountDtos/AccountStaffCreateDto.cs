@@ -1,12 +1,14 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using AVC.Constant;
+using System.ComponentModel.DataAnnotations;
 
 namespace AVC.Dtos.AccountDtos
 {
-    public class AccountCreateDto
+    public class AccountStaffCreateDto
     {
-        public AccountCreateDto()
+        public AccountStaffCreateDto()
         {
             Salt = BCrypt.Net.BCrypt.GenerateSalt();
+            RoleId = Roles.StaffId;
         }
 
         [EmailAddress]
@@ -24,17 +26,11 @@ namespace AVC.Dtos.AccountDtos
         [Required]
         public string LastName { get; set; }
         [Required]
-        public int RoleId { get; set; }
+        public int RoleId { get; }
         [Phone]
         public string Phone { get; set; }
         [Url]
         public string Avatar { get; set; }
-        public int? CreatedBy { get; private set; }
-
-        public void SetCreatedById(int createdId)
-        {
-            CreatedBy = createdId;
-        }
-
+        public int? ManagedBy { get; set; }
     }
 }

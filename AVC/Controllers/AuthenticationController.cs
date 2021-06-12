@@ -1,7 +1,9 @@
 ﻿using AutoMapper;
 using AVC.Dtos.AuthenticationDtos;
+using AVC.Dtos.ReponseDtos;
 using AVC.GenericRepository;
 using AVC.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -45,21 +47,20 @@ namespace AVC.Controllers
 
             if (accountModel == null)
             {
-                return Unauthorized("Invalid Email or Password");
-            }
-
-            if ((bool)!accountModel.IsAvailable)
-            {
-                return Unauthorized("Your Account is Deactivated");
+                return Unauthorized(new ErrorResponseDto("Invalid Email or Password"));
             }
 
             bool isAuthorized = accountModel.Password.Equals(BCrypt.Net.BCrypt.HashPassword(dto.Password, accountModel.Salt));
 
             if (!isAuthorized)
             {
-                return Unauthorized("Invalid Email or Password");
+                return Unauthorized(new ErrorResponseDto("Invalid Email or Password"));
             }
 
+            if ((bool)!accountModel.IsAvailable)
+            {
+                return Unauthorized(new ErrorResponseDto("Your Account is Deactivated"));
+            }
             string tokenStr = GenerateJSONWebToken(accountModel);
 
             AuthenticationReadDto authenticationReadDto = _mapper.Map<AuthenticationReadDto>(accountModel);
@@ -68,14 +69,14 @@ namespace AVC.Controllers
             return Ok(authenticationReadDto);
         }
 
-        #region TODO reset password
+        #region reset password
         [HttpPost("reset")]
-        public IActionResult Getemail(string email)
+        public IActionResult GetEmail(string email)
         {
             var account = _repository.Get(x => x.Email.Equals(email));
             if (account == null || account.Password.Equals(""))
             {
-                return StatusCode(404, new { message = "Invalid Email" });
+                return StatusCode(404, new ErrorResponseDto("Invalid Email"));
             }
 
             Random generator = new Random();
@@ -87,13 +88,48 @@ namespace AVC.Controllers
             var resource = SendMail(securityKey, account);
             if (resource.Equals("Success"))
             {
-                return StatusCode(200, new { message = "Please check your email for password reset instructions" });
+                return Ok(new ErrorResponseDto("Please check your email for password reset instructions"));
             }
             else
             {
                 return StatusCode(500, resource);
             }
+        }
 
+        /// <summary>
+        /// Change password for owner account
+        /// </summary>
+        /// <param name="newPasswordDto"></param>
+        /// <returns></returns>
+        [HttpPost("new-password")]
+        public IActionResult SetNewPassword(NewPasswordDto newPasswordDto)
+        {
+            Account accountModel = _repository.Get(x => x.Email == newPasswordDto.Email);
+
+            if (accountModel == null)
+            {
+                return StatusCode(StatusCodes.Status404NotFound, new ErrorResponseDto("Account Not Found"));
+            }
+
+            bool isAuthorized = accountModel.ResetPasswordToken.Equals(newPasswordDto.SecurityKey);
+
+            accountModel.ResetPasswordToken = "";
+
+            if (!isAuthorized)
+            {
+                _repository.SaveChanges();
+                return StatusCode(StatusCodes.Status403Forbidden, new ErrorResponseDto("Security Key is not correct"));
+            }
+
+            //Mapper to Update new password and salt
+            _mapper.Map(newPasswordDto, accountModel);
+
+            _repository.Update(accountModel);
+
+            _repository.SaveChanges();
+
+
+            return NoContent();
         }
 
         private string SendMail(string securityKey, Account account)
@@ -115,6 +151,7 @@ namespace AVC.Controllers
             return "Success";
 
         }
+
 
         #endregion
 

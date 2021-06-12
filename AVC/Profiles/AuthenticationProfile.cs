@@ -10,6 +10,8 @@ namespace AVC.Profiles
         {
             CreateMap<Account, AuthenticationReadDto>()
                 .ForMember(dest => dest.Account, opt => opt.MapFrom(src => src));
+            CreateMap<NewPasswordDto, Account>()
+                .ForMember(dest => dest.Email, src => src.Ignore());
 
         }
 

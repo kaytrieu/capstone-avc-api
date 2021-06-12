@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using AVC.Constant;
 using AVC.Dtos.ProfileDtos;
+using AVC.Dtos.ReponseDtos;
 using AVC.GenericRepository;
 using AVC.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -81,7 +82,7 @@ namespace AVC.Controllers
 
             if (account == null)
             {
-                return NotFound();
+                return NotFound(new ErrorResponseDto("Can not found your account"));
             }
 
             return Ok(_mapper.Map<ProfileReadDto>(account));
