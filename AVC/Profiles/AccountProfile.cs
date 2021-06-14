@@ -12,6 +12,8 @@ namespace AVC.Profiles
             //Source to Target
             CreateMap<Account, AccountReadAfterAuthenDto>();
             CreateMap<AccountStaffCreateDto, Account>();
+            CreateMap<AccountStaffCreateDtoFormWrapper, AccountStaffCreateDto>();
+            CreateMap<AccountManagerCreateDtoFormWrapper, AccountStaffCreateDto>();
             CreateMap<AccountManagerCreateDto, Account>();
             CreateMap<AccountActivationDto, Account>();
             CreateMap<ProfilePasswordUpdateDto, Account>()
@@ -23,6 +25,7 @@ namespace AVC.Profiles
                 .ForMember(des => des.ManagedByEmail, opt => opt.MapFrom(src => src.ManagedByNavigation.Email));
             CreateMap<Account, ProfileReadDto>()
                 .ForMember(des => des.Role, opt => opt.MapFrom(src => src.Role.Name));
+            CreateMap<ProfileUpdateDto, Account>();
         }
 
     }

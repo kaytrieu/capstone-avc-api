@@ -1,4 +1,6 @@
 ﻿using AVC.Constant;
+using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations;
 
 namespace AVC.Dtos.AccountDtos
@@ -11,6 +13,7 @@ namespace AVC.Dtos.AccountDtos
             RoleId = Roles.StaffId;
         }
 
+        [Required]
         [EmailAddress]
         public string Email { get; set; }
         private string password;
@@ -25,12 +28,10 @@ namespace AVC.Dtos.AccountDtos
         public string FirstName { get; set; }
         [Required]
         public string LastName { get; set; }
-        [Required]
+        [JsonIgnore]
         public int RoleId { get; }
         [Phone]
         public string Phone { get; set; }
-        [Url]
-        public string Avatar { get; set; }
         public int? ManagedBy { get; set; }
     }
 }

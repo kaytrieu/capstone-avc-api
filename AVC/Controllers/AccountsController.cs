@@ -15,6 +15,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Security.Claims;
 using static AVC.Extensions.Extensions.Extensions;
@@ -198,9 +199,9 @@ namespace AVC.Controllers
         /// <returns>Account for success, 401 for permission denied, 409 for email conflict</returns>
         [AuthorizeRoles(Roles.Admin)]
         [HttpPost("manager")]
-        public ActionResult<AccountManagerReadDto> PostAccount(AccountManagerCreateDto accountCreateDto)
+        public ActionResult<AccountManagerReadDto> PostAccount(AccountManagerCreateDtoFormWrapper accountCreateDtoWrapper)
         {
-            var claims = (HttpContext.User.Identity as ClaimsIdentity).Claims;
+            var accountCreateDto = _mapper.Map<AccountStaffCreateDto>(accountCreateDtoWrapper);
 
             Account accountModel = _mapper.Map<Account>(accountCreateDto);
 
@@ -221,26 +222,31 @@ namespace AVC.Controllers
                     throw ex;
                 }
             }
-            accountModel = _repository.Get(x => x.Id == accountModel.Id, x => x.Role);
 
-            AccountManagerReadDto accountReadDto = _mapper.Map<AccountManagerReadDto>(accountModel);
-            
-            //TODO: Send Validate Email
+            accountModel.Avatar = UploadAvatar(accountCreateDtoWrapper.AvatarImage, accountModel.Id);
+
+            _repository.SaveChanges();
+
+            accountModel = _repository.Get(x => x.Id == accountModel.Id, x => x.Role, x => x.ManagedByNavigation);
+
+            AccountStaffReadDto accountReadDto = _mapper.Map<AccountStaffReadDto>(accountModel);
 
             //return Ok();
-            return CreatedAtAction("GetManagerAccount", new { id = accountReadDto.Id }, accountReadDto);
+            return CreatedAtAction("GetStaffAccount", new { id = accountReadDto.Id }, accountReadDto);
         }
 
         // POST: api/Accounts
         /// <summary>
         /// Create new Account
         /// </summary>
-        /// <param name="accountCreateDto"></param>
+        /// <param name="accountCreateDtoWrapper"></param>
         /// <returns>Account for success, 401 for permission denied, 409 for email conflict</returns>
         [AuthorizeRoles(Roles.Admin)]
         [HttpPost("staff")]
-        public ActionResult<AccountStaffReadDto> PostStaffAccount(AccountStaffCreateDto accountCreateDto)
+        public ActionResult<AccountStaffReadDto> PostStaffAccount([FromForm] AccountStaffCreateDtoFormWrapper accountCreateDtoWrapper)
         {
+            var accountCreateDto = _mapper.Map<AccountStaffCreateDto>(accountCreateDtoWrapper);
+
             Account accountModel = _mapper.Map<Account>(accountCreateDto);
 
             _repository.Add(accountModel);
@@ -260,6 +266,11 @@ namespace AVC.Controllers
                     throw ex;
                 }
             }
+
+            accountModel.Avatar = UploadAvatar(accountCreateDtoWrapper.AvatarImage, accountModel.Id);
+
+            _repository.SaveChanges();
+
             accountModel = _repository.Get(x => x.Id == accountModel.Id, x => x.Role, x => x.ManagedByNavigation);
 
             AccountStaffReadDto accountReadDto = _mapper.Map<AccountStaffReadDto>(accountModel);
@@ -315,17 +326,29 @@ namespace AVC.Controllers
             return NoContent();
         }
 
-        [HttpPost("image")]
-        public ActionResult UploadImage(IFormFile image)
+        //[HttpPost("image")]
+        //public ActionResult UploadImage(IFormFile image)
+        //{
+        //    string imageUrl = string.Empty;
+
+        //    if (image != null && image.Length > 0)
+        //    {
+        //        imageUrl = FirebaseService.UploadFileToFirebaseStorage(image.OpenReadStream(),"testname".GetHashString(), "Images", _config).Result;
+        //    }
+
+        //    return Ok(imageUrl);
+        //}
+
+        private string UploadAvatar(IFormFile image, int id)
         {
             string imageUrl = string.Empty;
 
             if (image != null && image.Length > 0)
             {
-                imageUrl = FirebaseService.UploadFileToFirebaseStorage(image.OpenReadStream(), DateTime.Now.ToString("dd-MM-yyyy-HH-mm-ss-ff_") + image.FileName, "Images", _config).Result;
+                imageUrl = FirebaseService.UploadFileToFirebaseStorage(image.OpenReadStream(), ("Account" + id).GetHashString(), "Avatar", _config).Result;
             }
 
-            return Ok(imageUrl);
+            return imageUrl;
         }
 
     }

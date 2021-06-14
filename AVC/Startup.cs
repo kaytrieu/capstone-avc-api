@@ -20,6 +20,8 @@ using System.IO;
 using Tagent.EmailService;
 using Tagent.EmailService.Define;
 using Tagent.EmailService.Implement;
+using Newtonsoft.Json.Serialization;
+using Newtonsoft.Json;
 
 namespace AVC
 {
@@ -57,7 +59,12 @@ namespace AVC
 
             int apiVersion = Configuration.GetValue<int>("Version");
 
-            services.AddControllers();
+            services.AddControllers().AddNewtonsoftJson(
+                s =>
+                {
+                    s.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+                    s.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+                });
             services.AddDbContext<AVCContext>(
                 option => option.UseSqlServer(Configuration.GetConnectionString("Default"))
                 );
@@ -77,7 +84,6 @@ namespace AVC
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v" + apiVersion, new OpenApiInfo { Title = "AVC System", Version = "v" + apiVersion });
-
                 c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
                     In = ParameterLocation.Header,
@@ -104,6 +110,7 @@ namespace AVC
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
                 c.IncludeXmlComments(xmlPath);
             });
+
 
 
             services.AddRouting(option => option.LowercaseUrls = true);
@@ -155,7 +162,7 @@ namespace AVC
                 endpoints.MapControllers();
             });
 
-            
+
         }
     }
 }

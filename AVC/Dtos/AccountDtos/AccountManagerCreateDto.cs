@@ -1,4 +1,5 @@
 ﻿using AVC.Constant;
+using Microsoft.AspNetCore.Http;
 using System.ComponentModel.DataAnnotations;
 
 namespace AVC.Dtos.AccountDtos
@@ -11,6 +12,7 @@ namespace AVC.Dtos.AccountDtos
             RoleId = Roles.ManagerId;
         }
 
+        [Required]
         [EmailAddress]
         public string Email { get; set; }
         private string password;
@@ -29,7 +31,5 @@ namespace AVC.Dtos.AccountDtos
         public int RoleId { get; }
         [Phone]
         public string Phone { get; set; }
-        [Url]
-        public string Avatar { get; set; }
     }
 }

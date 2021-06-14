@@ -14,7 +14,7 @@ namespace AVC.Service
         private static readonly string Bucket = "avc-project-2bcf5.appspot.com";
         private static readonly string AuthEmail = "avc@gmail.com";
 
-        public static async Task<string> UploadFileToFirebaseStorage(Stream stream, string filename, string folder, IConfiguration config)
+        public static async Task<string> UploadFileToFirebaseStorage(Stream stream, string filename, string folder, IConfiguration config, string oldFileUrl = null)
         {
             string authPassword = config["FirebaseAuthPassword"];
             string uploadedFileLink = string.Empty;
@@ -26,14 +26,31 @@ namespace AVC.Service
             // you can use CancellationTokenSource to cancel the upload midway
             CancellationTokenSource cancellation = new CancellationTokenSource();
 
-            FirebaseStorageTask task = new FirebaseStorage(
+            //Start Delete Old File
+            if (oldFileUrl != null && oldFileUrl.Contains("firebasestorage.googleapis.com"))
+            {
+                string subString = oldFileUrl.Substring(oldFileUrl.IndexOf("AVCStorage"));
+                Task delTask = new FirebaseStorage(
                Bucket,
                new FirebaseStorageOptions
                {
                    AuthTokenAsyncFactory = () => Task.FromResult(a.FirebaseToken),
                    ThrowOnCancel = true // when you cancel the upload, exception is thrown. By default no exception is thrown
                })
-               .Child("TemplateStorage").Child(folder)
+               .Child("AVCStorage").Child(folder)
+               .Child(oldFileUrl)
+               .DeleteAsync();
+            }
+                //Finish Delete Old File
+
+                FirebaseStorageTask task = new FirebaseStorage(
+               Bucket,
+               new FirebaseStorageOptions
+               {
+                   AuthTokenAsyncFactory = () => Task.FromResult(a.FirebaseToken),
+                   ThrowOnCancel = true // when you cancel the upload, exception is thrown. By default no exception is thrown
+               })
+               .Child("AVCStorage").Child(folder)
                .Child(filename)
                .PutAsync(stream, cancellation.Token);
 

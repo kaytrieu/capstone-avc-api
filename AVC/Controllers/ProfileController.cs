@@ -4,10 +4,12 @@ using AVC.Dtos.ProfileDtos;
 using AVC.Dtos.ReponseDtos;
 using AVC.GenericRepository;
 using AVC.Models;
+using AVC.Service;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using System;
 using System.Linq;
 using System.Security.Claims;
 using static AVC.Extensions.Extensions.Extensions;
@@ -20,11 +22,13 @@ namespace AVC.Controllers
     {
         private readonly IAccountRepository _repository;
         private readonly IMapper _mapper;
+        private readonly IConfiguration _config;
 
-        public ProfileController(IAccountRepository repository, IMapper mapper, IConfiguration config, ILogger<ProfileController> logger, IRoleRepository roleRepository)
+        public ProfileController(IAccountRepository repository, IMapper mapper, IConfiguration config, ILogger<ProfileController> logger)
         {
             _repository = repository;
             _mapper = mapper;
+            _config = config;
         }
 
         /// <summary>
@@ -35,7 +39,7 @@ namespace AVC.Controllers
         [Authorize]
         [AuthorizeRoles(Roles.Admin, Roles.Manager)]
         [HttpPut("password")]
-        public IActionResult PutAccount(ProfilePasswordUpdateDto profilePasswordUpdateDto)
+        public IActionResult PutAccountPassword(ProfilePasswordUpdateDto profilePasswordUpdateDto)
         {
             var claims = (HttpContext.User.Identity as ClaimsIdentity).Claims;
             var id = int.Parse(claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier).Value);
@@ -86,6 +90,32 @@ namespace AVC.Controllers
             }
 
             return Ok(_mapper.Map<ProfileReadDto>(account));
+        }
+
+        [Authorize]
+        [HttpPut]
+        public IActionResult EditProfile([FromForm] ProfileUpdateDto profileUpdateDto)
+        {
+            var claims = (HttpContext.User.Identity as ClaimsIdentity).Claims;
+            var id = int.Parse(claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier).Value);
+
+            Account accountModel = _repository.Get(x => x.Id == id && x.IsAvailable == true, x => x.Role);
+
+            if (accountModel == null)
+            {
+                return NotFound();
+            }
+
+            accountModel.Avatar = FirebaseService.UploadFileToFirebaseStorage(profileUpdateDto.AvatarImage.OpenReadStream(), ("Account" + id).GetHashString(), "Avatar", _config).Result;
+
+            //Mapper to Update new password and salt
+            _mapper.Map(profileUpdateDto, accountModel);
+
+            _repository.Update(accountModel);
+
+            _repository.SaveChanges();
+
+            return Ok();
         }
     }
 }

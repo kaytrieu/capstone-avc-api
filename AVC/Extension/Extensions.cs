@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace AVC.Extensions.Extensions
 {
@@ -29,6 +31,21 @@ namespace AVC.Extensions.Extensions
             return isNullOrEmpty;
         }
 
+        public static byte[] GetHash(string inputString)
+        {
+            using (HashAlgorithm algorithm = MD5.Create())
+                return algorithm.ComputeHash(Encoding.UTF8.GetBytes(inputString));
+        }
+
+        public static string GetHashString(this string inputString)
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach (byte b in GetHash(inputString))
+                sb.Append(b.ToString("X2"));
+
+            return sb.ToString();
+        }
+
         public class AuthorizeRolesAttribute : AuthorizeAttribute
         {
             public AuthorizeRolesAttribute(params string[] roles) : base()
@@ -36,6 +53,8 @@ namespace AVC.Extensions.Extensions
                 Roles = string.Join(",", roles);
             }
         }
+
+
 
         
     }
