@@ -22,6 +22,7 @@ using Tagent.EmailService.Define;
 using Tagent.EmailService.Implement;
 using Newtonsoft.Json.Serialization;
 using Newtonsoft.Json;
+using Morcatko.AspNetCore.JsonMergePatch;
 
 namespace AVC
 {
@@ -59,12 +60,15 @@ namespace AVC
 
             int apiVersion = Configuration.GetValue<int>("Version");
 
+            services.AddMvcCore().AddNewtonsoftJsonMergePatch();
+
             services.AddControllers().AddNewtonsoftJson(
                 s =>
                 {
                     s.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
                     s.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
-                });
+                }).AddNewtonsoftJsonMergePatch();
+
             services.AddDbContext<AVCContext>(
                 option => option.UseSqlServer(Configuration.GetConnectionString("Default"))
                 );
@@ -75,6 +79,10 @@ namespace AVC
             services.AddScoped<IAccountRepository, AccountRepository>();
             services.AddScoped<IRoleRepository, RoleRepository>();
             services.AddScoped<IEmailSender, EmailSender>();
+            services.AddScoped<ICarConfigRepository, CarConfigRepository>();
+            services.AddScoped<IConfigurationRepository, ConfigurationRepository>();
+            services.AddScoped<IIssueRepository, IssueRepository>();
+            services.AddScoped<IModelVersionRepository, ModelVersionRepository>();
 
             //email sender
             var emailConfig = Configuration.GetSection("EmailConfiguration")
@@ -84,6 +92,8 @@ namespace AVC
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v" + apiVersion, new OpenApiInfo { Title = "AVC System", Version = "v" + apiVersion });
+                c.OperationFilter<JsonMergePatchDocumentOperationFilter>();
+
                 c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
                     In = ParameterLocation.Header,
@@ -147,7 +157,6 @@ namespace AVC
             app.UseSerilogRequestLogging();
 
             app.ConfigureExceptionHandler(logger);
-
 
             app.UseRouting();
 

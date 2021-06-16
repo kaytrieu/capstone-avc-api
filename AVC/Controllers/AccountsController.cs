@@ -13,9 +13,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Morcatko.AspNetCore.JsonMergePatch;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Security.Claims;
 using static AVC.Extensions.Extensions.Extensions;
@@ -47,12 +47,13 @@ namespace AVC.Controllers
         /// </summary>
         /// <param name="page">page number</param>
         /// <param name="limit">entities number each page</param>
-        /// <param name="searchValue"></param>
+        /// <param name="searchValue">Search By FirstName or Lastname</param>
+        /// <param name="isAvailable">Filter by account activation</param>
         /// <returns></returns>
         [Authorize]
         [HttpGet("staffs")]
         [AuthorizeRoles(Roles.Admin, Roles.Manager)]
-        public ActionResult<PagingResponseDto<AccountStaffReadDto>> GetStaffAccounts(int page = 1, int limit = 10, string searchValue = "")
+        public ActionResult<PagingResponseDto<AccountStaffReadDto>> GetStaffAccounts(int page = 1, int limit = 10, string searchValue = "", bool? isAvailable = null)
         {
             searchValue = searchValue.IsNullOrEmpty() ? "" : searchValue.Trim();
 
@@ -64,15 +65,20 @@ namespace AVC.Controllers
 
             PagingDto<Account> dto = null;
 
+            dto = _repository.GetAllWithOrderedDecs(page, limit, x => x.RoleId == staffRoleId && (x.LastName.Contains(searchValue) || x.FirstName.Contains(searchValue)), x => x.Role, x => x.ManagedByNavigation);
+
+
             if (role.Equals(Roles.Manager))
             {
                 var managerId = int.Parse(claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier).Value);
 
-                dto = _repository.GetAllWithOrderedDecs(page, limit, x => x.RoleId == staffRoleId && x.ManagedBy == managerId && (x.LastName.Contains(searchValue) || x.FirstName.Contains(searchValue)), x => x.Role);
+                dto.Result = dto.Result.Where(x => x.ManagedBy == managerId);
+                //dto = _repository.GetAllWithOrderedDecs(page, limit, x => x.RoleId == staffRoleId && x.ManagedBy == managerId && (x.LastName.Contains(searchValue) || x.FirstName.Contains(searchValue)), x => x.Role);
             }
-            else
+
+            if (isAvailable != null)
             {
-                dto = _repository.GetAllWithOrderedDecs(page, limit, x => x.RoleId == staffRoleId && (x.LastName.Contains(searchValue) || x.FirstName.Contains(searchValue)), x => x.Role);
+                dto.Result = dto.Result.Where(x => x.IsAvailable == isAvailable);
             }
 
             var accounts = _mapper.Map<IEnumerable<AccountStaffReadDto>>(dto.Result);
@@ -98,14 +104,15 @@ namespace AVC.Controllers
         /// <summary>
         /// Get List of Manager
         /// </summary>
-        /// <param name="page"></param>
-        /// <param name="limit"></param>
-        /// <param name="searchValue"></param>
+        /// <param name="page">page number</param>
+        /// <param name="limit">entity number of each page</param>
+        /// <param name="searchValue">Search By FirstName or Lastname</param>
+        /// <param name="isAvailable">Filter by account activation</param>
         /// <returns></returns>
         [Authorize]
         [HttpGet("managers")]
         [AuthorizeRoles(Roles.Admin)]
-        public ActionResult<PagingResponseDto<AccountManagerReadDto>> GetManagerAccounts(int page = 1, int limit = 10, string searchValue = "")
+        public ActionResult<PagingResponseDto<AccountManagerReadDto>> GetManagerAccounts(int page = 1, int limit = 10, string searchValue = "", bool? isAvailable = null)
         {
             searchValue = searchValue.IsNullOrEmpty() ? "" : searchValue.Trim();
 
@@ -116,6 +123,11 @@ namespace AVC.Controllers
             var managerRoleId = _roleRepository.Get(x => x.Name.Equals(Roles.Manager)).Id;
 
             PagingDto<Account> dto = _repository.GetAll(page, limit, x => x.RoleId == managerRoleId && x.IsAvailable == true && (x.LastName.Contains(searchValue) || x.FirstName.Contains(searchValue)), x => x.Role);
+
+            if (isAvailable != null)
+            {
+                dto.Result = dto.Result.Where(x => x.IsAvailable == isAvailable);
+            }
 
             var accounts = _mapper.Map<IEnumerable<AccountManagerReadDto>>(dto.Result);
 
@@ -135,6 +147,7 @@ namespace AVC.Controllers
             return Ok(response);
         }
 
+        //POST api/accounts/manager/id
         /// <summary>
         /// Get Specific Account
         /// </summary>
@@ -195,11 +208,11 @@ namespace AVC.Controllers
         /// <summary>
         /// Create new Account
         /// </summary>
-        /// <param name="accountCreateDto"></param>
+        /// <param name="accountCreateDtoWrapper"></param>
         /// <returns>Account for success, 401 for permission denied, 409 for email conflict</returns>
         [AuthorizeRoles(Roles.Admin)]
         [HttpPost("manager")]
-        public ActionResult<AccountManagerReadDto> PostAccount(AccountManagerCreateDtoFormWrapper accountCreateDtoWrapper)
+        public ActionResult<AccountManagerReadDto> PostManager(AccountManagerCreateDtoFormWrapper accountCreateDtoWrapper)
         {
             var accountCreateDto = _mapper.Map<AccountStaffCreateDto>(accountCreateDtoWrapper);
 
@@ -292,7 +305,12 @@ namespace AVC.Controllers
             var claims = (HttpContext.User.Identity as ClaimsIdentity).Claims;
             var role = claims.Where(x => x.Type == ClaimTypes.Role).FirstOrDefault().Value;
 
-            Account account = _repository.Get(x => x.Id == id, x => x.Role, x => x.ManagedByNavigation);
+            Account account = _repository.Get(x => x.Id == id, x => x.Role, x => x.ManagedByNavigation, x => x.InverseManagedByNavigation, x => x.Car);
+
+            if (account == null)
+            {
+                return StatusCode(StatusCodes.Status404NotFound, new ErrorResponseDto("Account not found"));
+            }
 
             if (role == Roles.Admin)
             {
@@ -315,6 +333,46 @@ namespace AVC.Controllers
                 return NotFound(new ErrorResponseDto("Can not found account."));
             }
 
+            if (!accountActivationDto.IsAvailable)
+            {
+                if (account.Role.Name.Equals(Roles.Manager))
+                {
+                    //get all staff managed by this manager
+                    var members = account.InverseManagedByNavigation;
+                    if (members.Count != 0)
+                    {
+                        //set staff managed by nobody
+                        foreach (var item in members)
+                        {
+                            item.ManagedBy = null;
+                        }
+                        //disable assign car for all staff managed by this manager
+                        //set Car's managed by nobody
+                        foreach (var item in account.Car)
+                        {
+                            item.ManagedBy = null;
+                            foreach (var assigned in item.AssignedCar.Where(assign => assign.IsAvailable == true))
+                            {
+                                assigned.IsAvailable = false;
+                                assigned.RemoveAt = DateTime.UtcNow.AddHours(7);
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    //account.ManagedBy = null;
+                    //disable control car permission by this staff
+                    var assignedList = account.AssignedCarAccount.Where(x => x.IsAvailable == true);
+
+                    foreach (var assign in assignedList)
+                    {
+                        assign.IsAvailable = false;
+                        assign.RemoveAt = DateTime.UtcNow.AddHours(7);
+                    }
+                }
+            }
+
             //Mapper to Update new password and salt
             _mapper.Map(accountActivationDto, account);
 
@@ -326,19 +384,6 @@ namespace AVC.Controllers
             return NoContent();
         }
 
-        //[HttpPost("image")]
-        //public ActionResult UploadImage(IFormFile image)
-        //{
-        //    string imageUrl = string.Empty;
-
-        //    if (image != null && image.Length > 0)
-        //    {
-        //        imageUrl = FirebaseService.UploadFileToFirebaseStorage(image.OpenReadStream(),"testname".GetHashString(), "Images", _config).Result;
-        //    }
-
-        //    return Ok(imageUrl);
-        //}
-
         private string UploadAvatar(IFormFile image, int id)
         {
             string imageUrl = string.Empty;
@@ -349,6 +394,74 @@ namespace AVC.Controllers
             }
 
             return imageUrl;
+        }
+
+        // PUT api/accounts/managedBy
+        /// <summary>
+        /// Assign/UnAssign Staff for Manager
+        /// </summary>
+        /// <param name="dto">activate true or false</param>
+        /// <returns></returns>
+        [AuthorizeRoles(Roles.Admin)]
+        [HttpPut("managedBy")]
+        public ActionResult SetManagedBy(AccountManagedByUpdateDto dto)
+        {
+            var account = _repository.Get(x => x.Id == dto.StaffId, x => x.AssignedCarAccount);
+
+            if (account == null)
+            {
+                return StatusCode(StatusCodes.Status404NotFound, new ErrorResponseDto("Staff not found"));
+            }
+
+            if (account.ManagedBy != null && account.ManagedBy != dto.ManagerId)
+            {
+                var assignedList = account.AssignedCarAccount.Where(x => x.IsAvailable == true);
+
+                foreach (var assign in assignedList)
+                {
+                    assign.IsAvailable = false;
+                    assign.RemoveAt = DateTime.UtcNow.AddHours(7);
+                }
+            }
+
+            account.ManagedBy = dto.ManagerId;
+
+            _repository.SaveChanges();
+
+            return Ok();
+        }
+
+        //Patch
+        /// <summary>
+        /// Partitle update account
+        /// </summary>
+        /// <param name="id">id of account</param>
+        /// <param name="dto">update dto</param>
+        /// <returns></returns>
+        [HttpPatch("{id}")]
+        [AuthorizeRoles(Roles.Admin)]
+        [Consumes(JsonMergePatchDocument.ContentType)]
+        public IActionResult PatchAccount(int id, [FromBody] JsonMergePatchDocument<AccountUpdateDto> dto)
+        {
+            Account accountModelFromRepo = _repository.Get(x => x.Id == id);
+
+            if (accountModelFromRepo == null)
+            {
+                return NotFound();
+            }
+
+            AccountUpdateDto accountToPatch = _mapper.Map<AccountUpdateDto>(accountModelFromRepo);
+
+            dto.ApplyTo(accountToPatch);
+
+            _mapper.Map(accountToPatch, accountModelFromRepo);
+
+            //Temp is not doing nothing
+            _repository.Update(accountModelFromRepo);
+
+            _repository.SaveChanges();
+
+            return NoContent();
         }
 
     }
