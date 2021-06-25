@@ -17,6 +17,7 @@ namespace AVC.Profiles
             CreateMap<AccountManagerCreateDto, Account>();
             CreateMap<AccountUpdateDto, Account>();
             CreateMap<Account, AccountUpdateDto>();
+            CreateMap<Account, AccountStaffAssignToReadDto>();
             CreateMap<AccountActivationDto, Account>();
             CreateMap<ProfilePasswordUpdateDto, Account>()
                 .ForMember(des => des.Password, opt => opt.MapFrom(src => src.NewPassword));

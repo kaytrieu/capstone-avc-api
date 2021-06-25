@@ -11,9 +11,10 @@ namespace AVC.Profiles
         public CarProfile()
         {
             //Source to Target
-            CreateMap<Car, CarListReadDto>().ForMember(des => des.ManagedByNavigation, opt => opt.MapFrom(src => src.ManagedByNavigation))
-                .ForMember(des => des.AssignedToId, opt => opt.MapFrom(src => src.AssignedCar.SingleOrDefault(assign => assign.IsAvailable == true).AccountId))
-                .ForMember(des => des.AssignedToEmail, opt => opt.MapFrom(src => src.AssignedCar.SingleOrDefault(assign => assign.IsAvailable == true).Account.Email));
+            CreateMap<Car, CarListReadDto>().ForMember(des => des.ManagedBy, opt => opt.MapFrom(src => src.ManagedByNavigation))
+                .ForMember(des => des.AssignTo, opt => opt.MapFrom(src => src.AssignedCar.SingleOrDefault(assign => assign.IsAvailable == true).Account));
+            CreateMap<Car, CarReadDto>().ForMember(des => des.ManagedBy, opt => opt.MapFrom(src => src.ManagedByNavigation))
+                .ForMember(des => des.AssignTo, opt => opt.MapFrom(src => src.AssignedCar.SingleOrDefault(assign => assign.IsAvailable == true).Account));
         }
 
     }

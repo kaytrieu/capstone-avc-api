@@ -13,6 +13,9 @@ namespace AVC.Repositories.Implement
         private readonly AVCContext _context;
         private readonly IRoleRepository _roleRepository;
         private readonly IAccountRepository _accountRepository;
+        private readonly ICarRepository _carRepository;
+        private readonly IIssueRepository _issueRepository;
+        private readonly IModelVersionRepository _modelVersionRepository;
         public UnitOfWork(AVCContext context)
         {
             _context = context;
@@ -20,6 +23,14 @@ namespace AVC.Repositories.Implement
 
         public IRoleRepository RoleRepository => _roleRepository ?? new RoleRepository(_context);
         public IAccountRepository AccountRepository => _accountRepository ?? new AccountRepository(_context);
+
+        public ICarRepository CarRepository => _carRepository ?? new CarRepository(_context);
+
+
+        public IIssueRepository IssueRepository => _issueRepository ?? new IssueRepository(_context);
+
+        public IModelVersionRepository ModelVersionRepository => _modelVersionRepository ?? new ModelVersionRepository(_context);
+
 
         public void Dispose()
         {

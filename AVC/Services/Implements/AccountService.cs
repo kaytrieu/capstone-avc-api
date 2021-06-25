@@ -21,25 +21,13 @@ using System.Security.Claims;
 
 namespace AVC.Services.Implements
 {
-    public class AccountService : IAccountService
+    public class AccountService : BaseService, IAccountService
     {
-        private readonly IUnitOfWork _unit;
-        private readonly IMapper _mapper;
-        private readonly IConfiguration _config;
-        private readonly IUrlHelper _urlHelper;
-        private IHttpContextAccessor _httpContextAccessor;
-
-
-        public AccountService(IUnitOfWork unit, IMapper mapper, IConfiguration config, IUrlHelper urlHelper, IHttpContextAccessor httpContextAccessor)
+        public AccountService(IUnitOfWork unit, IMapper mapper, IConfiguration config, IUrlHelper urlHelper, IHttpContextAccessor httpContextAccessor) : base(unit, mapper, config, urlHelper, httpContextAccessor)
         {
-            _unit = unit;
-            _mapper = mapper;
-            _config = config;
-            _urlHelper = urlHelper;
-            _httpContextAccessor = httpContextAccessor;
-
         }
-        public PagingResponseDto<AccountStaffReadDto> GetStaffList(AccountQueryFilter filter, IEnumerable<Claim> claimssd)
+
+        public PagingResponseDto<AccountStaffReadDto> GetStaffList(AccountQueryFilter filter)
         {
             var searchValue = filter.SearchValue;
             var page = filter.Page;
@@ -80,16 +68,16 @@ namespace AVC.Services.Implements
             {
                 if ((double)dto.Count / limit > page)
                 {
-                    response.NextPage = _urlHelper.Link(null, new { page = page + 1, limit, searchValue });
+                    response.NextPage = _urlHelper.Link(null, new { page = page + 1, limit, searchValue, isAvailable });
                 }
 
                 if (page > 1)
-                    response.PreviousPage = _urlHelper.Link(null, new { page = page - 1, limit, searchValue });
+                    response.PreviousPage = _urlHelper.Link(null, new { page = page - 1, limit, searchValue, isAvailable });
             }
             return response;
         }
 
-        public PagingResponseDto<AccountManagerReadDto> GetManagerList(AccountQueryFilter filter, IEnumerable<Claim> claims)
+        public PagingResponseDto<AccountManagerReadDto> GetManagerList(AccountQueryFilter filter)
         {
             var searchValue = filter.SearchValue;
             var page = filter.Page;
@@ -97,6 +85,8 @@ namespace AVC.Services.Implements
             var isAvailable = filter.IsAvailable;
 
             searchValue = searchValue.IsNullOrEmpty() ? "" : searchValue.Trim();
+
+            var claims = (_httpContextAccessor.HttpContext.User.Identity as ClaimsIdentity).Claims;
 
             var role = claims.Where(x => x.Type == ClaimTypes.Role).FirstOrDefault().Value;
 

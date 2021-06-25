@@ -12,7 +12,6 @@ namespace AVC.Models
         public Car()
         {
             AssignedCar = new HashSet<AssignedCar>();
-            CarConfig = new HashSet<CarConfig>();
             Issue = new HashSet<Issue>();
         }
 
@@ -25,10 +24,10 @@ namespace AVC.Models
         public string DeviceId { get; set; }
         public bool IsApproved { get; set; }
         public int? ManagedBy { get; set; }
+        public string ConfigUrl { get; set; }
 
         public virtual Account ManagedByNavigation { get; set; }
         public virtual ICollection<AssignedCar> AssignedCar { get; set; }
-        public virtual ICollection<CarConfig> CarConfig { get; set; }
         public virtual ICollection<Issue> Issue { get; set; }
     }
 }

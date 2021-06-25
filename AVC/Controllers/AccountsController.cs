@@ -59,7 +59,7 @@ namespace AVC.Controllers
         {
             var claims = (HttpContext.User.Identity as ClaimsIdentity).Claims;
 
-            var response = _accountService.GetStaffList(filter, claims);
+            var response = _accountService.GetStaffList(filter);
 
             return Ok(response);
         }
@@ -78,7 +78,7 @@ namespace AVC.Controllers
         {
             var claims = (HttpContext.User.Identity as ClaimsIdentity).Claims;
 
-            var response = _accountService.GetManagerList(filter, claims);
+            var response = _accountService.GetManagerList(filter);
 
             return Ok(response);
         }

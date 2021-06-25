@@ -96,14 +96,17 @@ namespace AVC
             //service 
             services.AddScoped<IAccountService, AccountService>();
             services.AddScoped<IAuthenticateService, AuthenticateService>();
+            services.AddScoped<ICarService, CarService>();
+            services.AddScoped<IProfileService, ProfileService>();
+            services.AddScoped<IAssignCarService, AssignCarService>();
+            services.AddScoped<IIssueService, IssueService>();
+            services.AddScoped<IModelVersionService, ModelVersionService>();
+            services.AddScoped<IRoleService, RoleService>();
 
             //repository
             services.AddScoped<IAccountRepository, AccountRepository>();
             services.AddScoped<ICarRepository, CarRepository>();
             services.AddScoped<IRoleRepository, RoleRepository>();
-            services.AddScoped<IEmailSender, EmailSender>();
-            services.AddScoped<ICarConfigRepository, CarConfigRepository>();
-            services.AddScoped<IConfigurationRepository, ConfigurationRepository>();
             services.AddScoped<IIssueRepository, IssueRepository>();
             services.AddScoped<IModelVersionRepository, ModelVersionRepository>();
 

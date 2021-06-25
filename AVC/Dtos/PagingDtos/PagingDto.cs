@@ -18,7 +18,22 @@ namespace AVC.Dtos.PagingDtos
         {
         }
 
-        public IQueryable<TEntity> Result { get; set; }
+        //public IQueryable<TEntity> Result { get => result; set => result = value; }
+        private IQueryable<TEntity> result;
+
+        public IQueryable<TEntity> Result
+        {
+            get
+            {
+                return result;
+            }
+            set
+            {
+                result = value;
+                Count = value.Count();
+            }
+        }
+
         public int Count { get; set; }
 
     }

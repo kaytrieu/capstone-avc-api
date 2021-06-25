@@ -12,8 +12,8 @@ namespace AVC.Services.Interfaces
 {
     public interface IAccountService
     {
-        PagingResponseDto<AccountStaffReadDto> GetStaffList(AccountQueryFilter filter, IEnumerable<Claim> claims);
-        PagingResponseDto<AccountManagerReadDto> GetManagerList(AccountQueryFilter filter, IEnumerable<Claim> claims);
+        PagingResponseDto<AccountStaffReadDto> GetStaffList(AccountQueryFilter filter);
+        PagingResponseDto<AccountManagerReadDto> GetManagerList(AccountQueryFilter filter);
         AccountManagerReadDto GetManagerDetail(int id);
         AccountStaffReadDto GetStaffDetail(int id);
 

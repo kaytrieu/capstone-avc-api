@@ -7,18 +7,15 @@ using System.Collections.Generic;
 
 namespace AVC.Models
 {
-    public partial class CarConfig
+    public class IssueReadDto
     {
         public int Id { get; set; }
+        public string Type { get; set; }
         public int CarId { get; set; }
-        public DateTime ConfigAt { get; set; }
-        public DateTime? RemoveAt { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public string Image { get; set; }
+        public string Description { get; set; }
         public bool? IsAvailable { get; set; }
-        public int ConfigId { get; set; }
-        public int ConfigBy { get; set; }
-
-        public virtual Car Car { get; set; }
-        public virtual Configuration Config { get; set; }
-        public virtual Account ConfigByNavigation { get; set; }
+        public string Location { get; set; }
     }
 }

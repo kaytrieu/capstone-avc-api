@@ -19,22 +19,13 @@ using Tagent.EmailService.Define;
 
 namespace AVC.Services.Implements
 {
-    public class AuthenticateService : IAuthenticateService
+    public class AuthenticateService : BaseService, IAuthenticateService
     {
-        private readonly IUnitOfWork _unit;
-        private readonly IMapper _mapper;
-        private readonly IConfiguration _config;
-        private readonly IUrlHelper _urlHelper;
-        private IHttpContextAccessor _httpContextAccessor;
         private readonly IEmailSender _emailSender;
 
         public AuthenticateService(IUnitOfWork unit, IMapper mapper, IConfiguration config, IEmailSender emailSender, IUrlHelper urlHelper, IHttpContextAccessor httpContextAccessor)
+        : base(unit, mapper, config, urlHelper, httpContextAccessor)
         {
-            _unit = unit;
-            _mapper = mapper;
-            _config = config;
-            _urlHelper = urlHelper;
-            _httpContextAccessor = httpContextAccessor;
             _emailSender = emailSender;
         }
 

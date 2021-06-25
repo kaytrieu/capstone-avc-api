@@ -10,6 +10,9 @@ namespace AVC.Repositories.Interface
     {
         IAccountRepository AccountRepository { get; }
         IRoleRepository RoleRepository { get; }
+        ICarRepository CarRepository { get; }
+        IIssueRepository IssueRepository { get; }
+        IModelVersionRepository ModelVersionRepository { get; }
 
         void SaveChanges();
         Task SaveChangesAsync();

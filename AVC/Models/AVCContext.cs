@@ -22,8 +22,7 @@ namespace AVC.Models
         public virtual DbSet<Account> Account { get; set; }
         public virtual DbSet<AssignedCar> AssignedCar { get; set; }
         public virtual DbSet<Car> Car { get; set; }
-        public virtual DbSet<CarConfig> CarConfig { get; set; }
-        public virtual DbSet<Configuration> Configuration { get; set; }
+        public virtual DbSet<DefaultConfiguration> DefaultConfiguration { get; set; }
         public virtual DbSet<Issue> Issue { get; set; }
         public virtual DbSet<IssueType> IssueType { get; set; }
         public virtual DbSet<ModelStatus> ModelStatus { get; set; }
@@ -128,6 +127,8 @@ namespace AVC.Models
                     .HasName("IX_Car")
                     .IsUnique();
 
+                entity.Property(e => e.ConfigUrl).HasMaxLength(4000);
+
                 entity.Property(e => e.CreatedAt)
                     .HasColumnType("datetime")
                     .HasDefaultValueSql("((getdate() AT TIME ZONE 'Pacific Standard Time'))");
@@ -151,58 +152,15 @@ namespace AVC.Models
                     .HasConstraintName("FK_Car_Account");
             });
 
-            modelBuilder.Entity<CarConfig>(entity =>
+            modelBuilder.Entity<DefaultConfiguration>(entity =>
             {
-                entity.Property(e => e.ConfigAt).HasColumnType("datetime");
-
-                entity.Property(e => e.IsAvailable)
+                entity.Property(e => e.ConfigUrl)
                     .IsRequired()
-                    .HasDefaultValueSql("((1))");
+                    .HasMaxLength(4000);
 
-                entity.Property(e => e.RemoveAt).HasColumnType("datetime");
-
-                entity.HasOne(d => d.Car)
-                    .WithMany(p => p.CarConfig)
-                    .HasForeignKey(d => d.CarId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_CarConfig_Car");
-
-                entity.HasOne(d => d.ConfigByNavigation)
-                    .WithMany(p => p.CarConfig)
-                    .HasForeignKey(d => d.ConfigBy)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_CarConfig_Account");
-
-                entity.HasOne(d => d.Config)
-                    .WithMany(p => p.CarConfig)
-                    .HasForeignKey(d => d.ConfigId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_CarConfig_Configuration");
-            });
-
-            modelBuilder.Entity<Configuration>(entity =>
-            {
-                entity.Property(e => e.ConfigUrl).HasMaxLength(4000);
-
-                entity.Property(e => e.CreatedAt)
+                entity.Property(e => e.LastModified)
                     .HasColumnType("datetime")
                     .HasDefaultValueSql("((getdate() AT TIME ZONE 'Pacific Standard Time'))");
-
-                entity.Property(e => e.Description).HasMaxLength(4000);
-
-                entity.Property(e => e.IsAvailable)
-                    .IsRequired()
-                    .HasDefaultValueSql("((1))");
-
-                entity.Property(e => e.Name)
-                    .IsRequired()
-                    .HasMaxLength(50);
-
-                entity.HasOne(d => d.CreatedByNavigation)
-                    .WithMany(p => p.Configuration)
-                    .HasForeignKey(d => d.CreatedBy)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_Configuration_Account");
             });
 
             modelBuilder.Entity<Issue>(entity =>
