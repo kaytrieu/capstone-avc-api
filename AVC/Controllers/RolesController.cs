@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using AVC.Dtos.RoleDtos;
-using AVC.GenericRepository;
+using AVC.Repositories.Interface;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
@@ -26,7 +26,6 @@ namespace AVC.Controllers
         /// Get all Role of System
         /// </summary>
         /// <returns></returns>
-        [Authorize]
         [HttpGet]
         public ActionResult<IEnumerable<RoleReadDto>> GetRole()
         {

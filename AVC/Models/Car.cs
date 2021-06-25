@@ -19,16 +19,14 @@ namespace AVC.Models
         public int Id { get; set; }
         public string Image { get; set; }
         public string Name { get; set; }
-        public bool? IsConnecting { get; set; }
+        public bool IsConnecting { get; set; }
         public bool? IsAvailable { get; set; }
-        public int? ModelId { get; set; }
-        public DateTime? CreatedAt { get; set; }
+        public DateTime CreatedAt { get; set; }
         public string DeviceId { get; set; }
         public bool IsApproved { get; set; }
         public int? ManagedBy { get; set; }
 
         public virtual Account ManagedByNavigation { get; set; }
-        public virtual ModelVersion Model { get; set; }
         public virtual ICollection<AssignedCar> AssignedCar { get; set; }
         public virtual ICollection<CarConfig> CarConfig { get; set; }
         public virtual ICollection<Issue> Issue { get; set; }

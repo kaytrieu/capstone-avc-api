@@ -2,14 +2,13 @@
 using AVC.Constant;
 using AVC.Dtos.ProfileDtos;
 using AVC.Dtos.ReponseDtos;
-using AVC.GenericRepository;
 using AVC.Models;
+using AVC.Repositories.Interface;
 using AVC.Service;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using System;
 using System.Linq;
 using System.Security.Claims;
 using static AVC.Extensions.Extensions.Extensions;
@@ -86,7 +85,7 @@ namespace AVC.Controllers
 
             if (account == null)
             {
-                return NotFound(new ErrorResponseDto("Can not found your account"));
+                return NotFound(new ResponseDto("Can not found your account"));
             }
 
             return Ok(_mapper.Map<ProfileReadDto>(account));

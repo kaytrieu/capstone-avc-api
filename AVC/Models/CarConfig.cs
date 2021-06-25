@@ -10,11 +10,11 @@ namespace AVC.Models
     public partial class CarConfig
     {
         public int Id { get; set; }
-        public int? CarId { get; set; }
-        public DateTime? ConfigAt { get; set; }
+        public int CarId { get; set; }
+        public DateTime ConfigAt { get; set; }
         public DateTime? RemoveAt { get; set; }
         public bool? IsAvailable { get; set; }
-        public int? ConfigId { get; set; }
+        public int ConfigId { get; set; }
         public int ConfigBy { get; set; }
 
         public virtual Car Car { get; set; }

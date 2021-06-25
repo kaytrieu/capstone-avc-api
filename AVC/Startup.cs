@@ -23,6 +23,13 @@ using Tagent.EmailService.Implement;
 using Newtonsoft.Json.Serialization;
 using Newtonsoft.Json;
 using Morcatko.AspNetCore.JsonMergePatch;
+using AVC.Repositories.Interface;
+using AVC.Repositories.Implement;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Routing;
+using AVC.Services.Implements;
+using AVC.Services.Interfaces;
 
 namespace AVC
 {
@@ -57,6 +64,10 @@ namespace AVC
                }
                );
 
+            services.AddSignalR(o =>
+            {
+                o.EnableDetailedErrors = true;
+            });
 
             int apiVersion = Configuration.GetValue<int>("Version");
 
@@ -68,21 +79,44 @@ namespace AVC
                     s.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
                     s.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
                 }).AddNewtonsoftJsonMergePatch();
-
+            JsonConvert.DefaultSettings = () => new JsonSerializerSettings
+            {
+                ContractResolver = new CamelCasePropertyNamesContractResolver()
+            };
             services.AddDbContext<AVCContext>(
                 option => option.UseSqlServer(Configuration.GetConnectionString("Default"))
                 );
 
             //Add AutoMapper
-            services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+            services.AddHttpContextAccessor();
 
+            services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+            services.AddSingleton<IEmailSender, EmailSender>();
+
+            //service 
+            services.AddScoped<IAccountService, AccountService>();
+            services.AddScoped<IAuthenticateService, AuthenticateService>();
+
+            //repository
             services.AddScoped<IAccountRepository, AccountRepository>();
+            services.AddScoped<ICarRepository, CarRepository>();
             services.AddScoped<IRoleRepository, RoleRepository>();
             services.AddScoped<IEmailSender, EmailSender>();
             services.AddScoped<ICarConfigRepository, CarConfigRepository>();
             services.AddScoped<IConfigurationRepository, ConfigurationRepository>();
             services.AddScoped<IIssueRepository, IssueRepository>();
             services.AddScoped<IModelVersionRepository, ModelVersionRepository>();
+
+            //unit of work
+            services.AddTransient<IUnitOfWork, UnitOfWork>();
+
+            services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
+            services.AddScoped<IUrlHelper>(x =>
+            {
+                var actionContext = x.GetRequiredService<IActionContextAccessor>().ActionContext;
+                var factory = x.GetRequiredService<IUrlHelperFactory>();
+                return factory.GetUrlHelper(actionContext);
+            });
 
             //email sender
             var emailConfig = Configuration.GetSection("EmailConfiguration")
@@ -123,6 +157,7 @@ namespace AVC
 
 
 
+
             services.AddRouting(option => option.LowercaseUrls = true);
 
 
@@ -156,7 +191,7 @@ namespace AVC
 
             app.UseSerilogRequestLogging();
 
-            app.ConfigureExceptionHandler(logger);
+            app.ConfigureExceptionHandler(logger, env);
 
             app.UseRouting();
 

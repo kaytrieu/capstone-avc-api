@@ -16,12 +16,13 @@ namespace AVC.Models
 
         public int Id { get; set; }
         public bool? IsAvailable { get; set; }
-        public DateTime? CreatedAt { get; set; }
+        public DateTime CreatedAt { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
         public string ConfigUrl { get; set; }
-        public int? CreatedBy { get; set; }
+        public int CreatedBy { get; set; }
 
+        public virtual Account CreatedByNavigation { get; set; }
         public virtual ICollection<CarConfig> CarConfig { get; set; }
     }
 }

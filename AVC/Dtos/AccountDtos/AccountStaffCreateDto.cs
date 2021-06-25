@@ -15,6 +15,7 @@ namespace AVC.Dtos.AccountDtos
 
         [Required]
         [EmailAddress]
+        [MaxLength(255)]
         public string Email { get; set; }
         private string password;
         [Required]

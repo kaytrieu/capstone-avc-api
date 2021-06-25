@@ -11,10 +11,10 @@ namespace AVC.Models
     {
         public int CarId { get; set; }
         public bool? IsAvailable { get; set; }
-        public DateTime? AssignedAt { get; set; }
+        public DateTime AssignedAt { get; set; }
         public int Id { get; set; }
-        public int? AccountId { get; set; }
-        public int? AssignedBy { get; set; }
+        public int AccountId { get; set; }
+        public int AssignedBy { get; set; }
         public DateTime? RemoveAt { get; set; }
 
         public virtual Account Account { get; set; }

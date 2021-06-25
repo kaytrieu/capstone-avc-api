@@ -49,6 +49,7 @@ namespace AVC.Models
                     .HasDefaultValueSql("((getdate() AT TIME ZONE 'Pacific Standard Time'))");
 
                 entity.Property(e => e.Email)
+                    .IsRequired()
                     .HasMaxLength(255)
                     .IsUnicode(false);
 
@@ -105,11 +106,13 @@ namespace AVC.Models
                 entity.HasOne(d => d.Account)
                     .WithMany(p => p.AssignedCarAccount)
                     .HasForeignKey(d => d.AccountId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_AssignedCar_Account2");
 
                 entity.HasOne(d => d.AssignedByNavigation)
                     .WithMany(p => p.AssignedCarAssignedByNavigation)
                     .HasForeignKey(d => d.AssignedBy)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_AssignedCar_Account");
 
                 entity.HasOne(d => d.Car)
@@ -121,6 +124,10 @@ namespace AVC.Models
 
             modelBuilder.Entity<Car>(entity =>
             {
+                entity.HasIndex(e => e.DeviceId)
+                    .HasName("IX_Car")
+                    .IsUnique();
+
                 entity.Property(e => e.CreatedAt)
                     .HasColumnType("datetime")
                     .HasDefaultValueSql("((getdate() AT TIME ZONE 'Pacific Standard Time'))");
@@ -142,11 +149,6 @@ namespace AVC.Models
                     .WithMany(p => p.Car)
                     .HasForeignKey(d => d.ManagedBy)
                     .HasConstraintName("FK_Car_Account");
-
-                entity.HasOne(d => d.Model)
-                    .WithMany(p => p.Car)
-                    .HasForeignKey(d => d.ModelId)
-                    .HasConstraintName("FK_Car_Model");
             });
 
             modelBuilder.Entity<CarConfig>(entity =>
@@ -162,6 +164,7 @@ namespace AVC.Models
                 entity.HasOne(d => d.Car)
                     .WithMany(p => p.CarConfig)
                     .HasForeignKey(d => d.CarId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_CarConfig_Car");
 
                 entity.HasOne(d => d.ConfigByNavigation)
@@ -173,6 +176,7 @@ namespace AVC.Models
                 entity.HasOne(d => d.Config)
                     .WithMany(p => p.CarConfig)
                     .HasForeignKey(d => d.ConfigId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_CarConfig_Configuration");
             });
 
@@ -190,7 +194,15 @@ namespace AVC.Models
                     .IsRequired()
                     .HasDefaultValueSql("((1))");
 
-                entity.Property(e => e.Name).HasMaxLength(50);
+                entity.Property(e => e.Name)
+                    .IsRequired()
+                    .HasMaxLength(50);
+
+                entity.HasOne(d => d.CreatedByNavigation)
+                    .WithMany(p => p.Configuration)
+                    .HasForeignKey(d => d.CreatedBy)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_Configuration_Account");
             });
 
             modelBuilder.Entity<Issue>(entity =>
@@ -212,11 +224,13 @@ namespace AVC.Models
                 entity.HasOne(d => d.Car)
                     .WithMany(p => p.Issue)
                     .HasForeignKey(d => d.CarId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_Issue_Car");
 
                 entity.HasOne(d => d.Type)
                     .WithMany(p => p.Issue)
                     .HasForeignKey(d => d.TypeId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_Log_LogType");
             });
 
@@ -229,6 +243,7 @@ namespace AVC.Models
                     .HasDefaultValueSql("((1))");
 
                 entity.Property(e => e.Name)
+                    .IsRequired()
                     .HasMaxLength(50)
                     .IsUnicode(false);
             });
@@ -241,7 +256,9 @@ namespace AVC.Models
                     .IsRequired()
                     .HasDefaultValueSql("((1))");
 
-                entity.Property(e => e.Name).HasMaxLength(255);
+                entity.Property(e => e.Name)
+                    .IsRequired()
+                    .HasMaxLength(255);
             });
 
             modelBuilder.Entity<ModelVersion>(entity =>
@@ -280,6 +297,7 @@ namespace AVC.Models
                     .HasDefaultValueSql("((1))");
 
                 entity.Property(e => e.Name)
+                    .IsRequired()
                     .HasMaxLength(50)
                     .IsUnicode(false);
             });

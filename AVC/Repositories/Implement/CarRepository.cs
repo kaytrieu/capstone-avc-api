@@ -1,5 +1,5 @@
 ﻿using AVC.Models;
-using AVC.Repository.Interface;
+using AVC.Repositories.Interface;
 
 namespace AVC.GenericRepository.Implement
 {

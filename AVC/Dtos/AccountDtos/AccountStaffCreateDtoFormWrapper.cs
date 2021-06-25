@@ -12,6 +12,7 @@ namespace AVC.Dtos.AccountDtos
         public IFormFile AvatarImage { get; set; }
         [Required]
         [EmailAddress]
+        [MaxLength(255)]
         public string Email { get; set; }
         [Required]
         public string Password { get; set; }
