@@ -22,18 +22,10 @@ namespace AVC.Controllers
     [ApiController]
     public class AuthenticationController : ControllerBase
     {
-        private readonly IAccountRepository _repository;
-        private readonly IMapper _mapper;
-        private readonly IConfiguration _config;
-        private readonly IEmailSender _emailSender;
         private readonly IAuthenticateService _authenticateService;
 
-        public AuthenticationController(IAccountRepository repository, IMapper mapper, IConfiguration config, IEmailSender emailSender, IAuthenticateService authenticateService)
+        public AuthenticationController(IAuthenticateService authenticateService)
         {
-            _repository = repository;
-            _mapper = mapper;
-            _config = config;
-            _emailSender = emailSender;
             _authenticateService = authenticateService;
         }
 

@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using AVC.Dtos.RoleDtos;
 using AVC.Repositories.Interface;
 using AVC.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
@@ -15,6 +16,13 @@ namespace AVC.Services.Implements
     {
         public RoleService(IUnitOfWork unit, IMapper mapper, IConfiguration config, IUrlHelper urlHelper, IHttpContextAccessor httpContextAccessor) : base(unit, mapper, config, urlHelper, httpContextAccessor)
         {
+        }
+
+        public IEnumerable<RoleReadDto> GetRoleList()
+        {
+            var roleList = _unit.RoleRepository.GetAll(x => x.IsAvailable == true);
+            var response = _mapper.Map<IEnumerable<RoleReadDto>>(roleList);
+            return response;
         }
     }
 }

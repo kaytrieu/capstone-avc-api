@@ -8,5 +8,6 @@ namespace AVC.Dtos.QueryFilter
     public class CarQueryFilter : BaseQueryFilter
     {
         public bool? IsAvailable { get; set; } = null;
+        public bool? IsApproved { get; set; } = null;
     }
 }

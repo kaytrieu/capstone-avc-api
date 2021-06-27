@@ -28,21 +28,10 @@ namespace AVC.Controllers
     [ApiController]
     public class AccountsController : ControllerBase
     {
-        private readonly IAccountRepository _repository;
-        private readonly IRoleRepository _roleRepository;
-        private readonly IMapper _mapper;
-        private readonly IConfiguration _config;
-        private readonly ILogger<AccountsController> _logger;
         private readonly IAccountService _accountService;
 
-        public AccountsController(IAccountRepository repository, IMapper mapper, IConfiguration config,
-                                    ILogger<AccountsController> logger, IRoleRepository roleRepository, IAccountService accountService)
+        public AccountsController( IAccountService accountService)
         {
-            _repository = repository;
-            _mapper = mapper;
-            _config = config;
-            _logger = logger;
-            _roleRepository = roleRepository;
             _accountService = accountService;
         }
 

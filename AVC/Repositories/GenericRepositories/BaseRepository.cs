@@ -180,5 +180,29 @@ namespace AVC.GenericRepository
 
             return dto;
         }
+
+        public PagingDto<T> GetAllWithOrdered(int page, int limit, Expression<Func<T, bool>> predicate, Expression<Func<T, object>> orderBy, Func<IQueryable<T>, IIncludableQueryable<T, object>> includer = null)
+        {
+            IQueryable<T> query = _dbSet.AsQueryable();
+
+            if (includer != null)
+                query = includer(query);
+
+            PagingDto<T> dto = new PagingDto<T>(query.Where(predicate).OrderBy(orderBy), page, limit);
+
+            return dto;
+        }
+
+        public PagingDto<T> GetAllWithOrderedDecs(int page, int limit, Expression<Func<T, bool>> predicate, Expression<Func<T, object>> orderBy, Func<IQueryable<T>, IIncludableQueryable<T, object>> includer = null)
+        {
+            IQueryable<T> query = _dbSet.AsQueryable();
+
+            if (includer != null)
+                query = includer(query);
+
+            PagingDto<T> dto = new PagingDto<T>(query.Where(predicate).OrderByDescending(orderBy), page, limit);
+
+            return dto;
+        }
     }
 }

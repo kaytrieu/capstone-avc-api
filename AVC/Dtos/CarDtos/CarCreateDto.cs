@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace AVC.Dtos.CarDtos
 {
-    public class CarReadDto
+    public class CarCreateDto
     {
         public int Id { get; set; }
         public string Image { get; set; }

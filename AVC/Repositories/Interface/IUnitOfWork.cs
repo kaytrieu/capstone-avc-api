@@ -13,6 +13,7 @@ namespace AVC.Repositories.Interface
         ICarRepository CarRepository { get; }
         IIssueRepository IssueRepository { get; }
         IModelVersionRepository ModelVersionRepository { get; }
+        IIssueTypeRepository IssueTypeRepository { get; }
 
         void SaveChanges();
         Task SaveChangesAsync();

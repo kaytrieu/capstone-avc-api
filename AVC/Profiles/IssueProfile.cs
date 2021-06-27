@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using AVC.Dtos.RoleDtos;
+using AVC.Dtos.IssueDtos;
 using AVC.Models;
 
 namespace AVC.Profiles
@@ -9,6 +9,8 @@ namespace AVC.Profiles
         public IssuelProfile()
         {
             CreateMap<Issue, IssueReadDto>().ForMember(des => des.Type, opt => opt.MapFrom(src => src.Type.Name));
+            CreateMap<IssueCreateDto, Issue>().ReverseMap();
+            CreateMap<IssueType, TypeReadDto>();
         }
 
     }

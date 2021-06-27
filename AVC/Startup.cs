@@ -109,6 +109,7 @@ namespace AVC
             services.AddScoped<IRoleRepository, RoleRepository>();
             services.AddScoped<IIssueRepository, IssueRepository>();
             services.AddScoped<IModelVersionRepository, ModelVersionRepository>();
+            services.AddScoped<IIssueTypeRepository, IssueTypeRepository>();
 
             //unit of work
             services.AddTransient<IUnitOfWork, UnitOfWork>();

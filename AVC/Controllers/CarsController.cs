@@ -55,8 +55,16 @@ namespace AVC.Controllers
             var respone = _carService.GetCarDetail(id);
 
             return Ok(respone);
-
         }
+
+        //[AuthorizeRoles(Roles.Admin)]
+        //[HttpPut("managedBy")]
+        //public ActionResult SetManagedBy(AccountManagedByUpdateDto dto)
+        //{
+        //    _accountService.SetManagedBy(dto);
+
+        //    return Ok();
+        //}
 
         // PUT: api/Cars/5
         // To protect from overposting attacks, enable the specific properties you want to bind to, for

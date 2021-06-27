@@ -33,8 +33,8 @@ namespace AVC.Services.Implements
             var role = claims.Where(x => x.Type == ClaimTypes.Role).FirstOrDefault().Value;
 
             Car carFromRepo = _unit.CarRepository.Get(x => x.Id == id && x.IsApproved,
-                includer: x => x.Include(car => car.ManagedByNavigation).ThenInclude(manager => manager.Role)
-                                .Include(car => car.AssignedCar).ThenInclude(assign => assign.Account)
+                includer: x => x.Include(car => car.ManagedByNavigation)
+                                .Include(car => car.AssignedCar)
                                 .Include(c => c.Issue).ThenInclude(issue => issue.Type));
             if(carFromRepo == null)
             {
@@ -97,6 +97,10 @@ namespace AVC.Services.Implements
             if (isAvailable != null)
             {
                 dto.Result = dto.Result.Where(x => x.IsAvailable == isAvailable);
+            }
+            if (filter.IsApproved != null)
+            {
+                dto.Result = dto.Result.Where(x => x.IsApproved == filter.IsApproved);
             }
 
             var accounts = _mapper.Map<IEnumerable<CarListReadDto>>(dto.Result);

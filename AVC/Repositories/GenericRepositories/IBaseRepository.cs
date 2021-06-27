@@ -17,8 +17,10 @@ namespace AVC.GenericRepository
         public PagingDto<T> GetAll(int page, int limit, Expression<Func<T, bool>> predicate, Func<IQueryable<T>, IIncludableQueryable<T, object>> includer = null);
         PagingDto<T> GetAllWithOrdered(int page, int limit, Expression<Func<T, object>> orderBy, params Expression<Func<T, object>>[] including);
         PagingDto<T> GetAllWithOrdered(int page, int limit, Expression<Func<T, bool>> predicate, Expression<Func<T, object>> orderBy, params Expression<Func<T, object>>[] including);
+        PagingDto<T> GetAllWithOrdered(int page, int limit, Expression<Func<T, bool>> predicate, Expression<Func<T, object>> orderBy, Func<IQueryable<T>, IIncludableQueryable<T, object>> includer = null);
         PagingDto<T> GetAllWithOrderedDecs(int page, int limit, Expression<Func<T, object>> orderBy, params Expression<Func<T, object>>[] including);
         PagingDto<T> GetAllWithOrderedDecs(int page, int limit, Expression<Func<T, bool>> predicate, Expression<Func<T, object>> orderBy, params Expression<Func<T, object>>[] including);
+        PagingDto<T> GetAllWithOrderedDecs(int page, int limit, Expression<Func<T, bool>> predicate, Expression<Func<T, object>> orderBy, Func<IQueryable<T>, IIncludableQueryable<T, object>> includer = null);
         T Get(Expression<Func<T, bool>> predicate, params Expression<Func<T, object>>[] including);
         T Get(Expression<Func<T, bool>> predicate, Func<IQueryable<T>, IIncludableQueryable<T, object>> includer = null);
         void Add(T t);

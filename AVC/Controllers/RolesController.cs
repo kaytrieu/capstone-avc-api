@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using AVC.Dtos.RoleDtos;
 using AVC.Repositories.Interface;
+using AVC.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
@@ -11,14 +12,12 @@ namespace AVC.Controllers
     [ApiController]
     public class RolesController : ControllerBase
     {
-        private readonly IRoleRepository _repository;
-        private readonly IMapper _mapper;
+        private readonly IRoleService _roleService;
 
 
-        public RolesController(IRoleRepository repository, IMapper mapper)
+        public RolesController(IRoleService roleService)
         {
-            _repository = repository;
-            _mapper = mapper;
+            _roleService = roleService;
         }
 
         // GET: api/Roles
@@ -29,9 +28,8 @@ namespace AVC.Controllers
         [HttpGet]
         public ActionResult<IEnumerable<RoleReadDto>> GetRole()
         {
-            var roleList = _repository.GetAll(x => x.IsAvailable == true);
-            var response = _mapper.Map<IEnumerable<RoleReadDto>>(roleList);
-            return Ok(new {Result = response });
+            var dto = _roleService.GetRoleList();
+            return Ok(new {Result = dto });
         }
 
     }
