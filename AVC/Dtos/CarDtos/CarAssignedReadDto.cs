@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace AVC.Dtos.CarDtos
 {
-    public class CarReadDto
+    public class CarAssignedReadDto
     {
         public int Id { get; set; }
         public string Image { get; set; }
@@ -19,9 +19,5 @@ namespace AVC.Dtos.CarDtos
         public string DeviceId { get; set; }
         public string ConfigUrl { get; set; }
         public bool IsApproved { get; set; }
-        public virtual AccountManagerReadDto ManagedBy { get; set; }
-        public virtual AccountStaffAssignToReadDto AssignTo { get; set; }
-        public virtual ICollection<IssueReadDto> Issues { get; set; }
-
     }
 }

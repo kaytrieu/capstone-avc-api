@@ -34,7 +34,7 @@ namespace AVC.Services.Implements
 
             Car carFromRepo = _unit.CarRepository.Get(x => x.Id == id && x.IsApproved,
                 includer: x => x.Include(car => car.ManagedByNavigation)
-                                .Include(car => car.AssignedCar)
+                                .Include(car => car.AssignedCar).ThenInclude(assign => assign.Account)
                                 .Include(c => c.Issue).ThenInclude(issue => issue.Type));
             if(carFromRepo == null)
             {

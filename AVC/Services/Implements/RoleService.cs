@@ -20,7 +20,7 @@ namespace AVC.Services.Implements
 
         public IEnumerable<RoleReadDto> GetRoleList()
         {
-            var roleList = _unit.RoleRepository.GetAll(x => x.IsAvailable == true);
+            var roleList = _unit.RoleRepository.GetAll(x => x.IsAvailable == true && !x.Name.Equals("Admin"));
             var response = _mapper.Map<IEnumerable<RoleReadDto>>(roleList);
             return response;
         }

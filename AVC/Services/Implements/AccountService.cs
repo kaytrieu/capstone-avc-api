@@ -117,13 +117,15 @@ namespace AVC.Services.Implements
             return response;
         }
 
-        public AccountManagerReadDto GetManagerDetail(int id)
+        public AccountManagerDetailReadDto GetManagerDetail(int id)
         {
             var claims = (_httpContextAccessor.HttpContext.User.Identity as ClaimsIdentity).Claims;
 
             var role = claims.Where(x => x.Type == ClaimTypes.Role).FirstOrDefault().Value;
 
-            Account account = _unit.AccountRepository.Get(x => x.Id == id && x.Role.Name.Equals(Roles.Manager), x => x.Role);
+            Account account = _unit.AccountRepository.Get(x => x.Id == id && x.Role.Name.Equals(Roles.Manager), x => x.Role, 
+                                                                                                                x => x.InverseManagedByNavigation,
+                                                                                                                x => x.Car);
 
             if (account == null)
             {
@@ -131,16 +133,19 @@ namespace AVC.Services.Implements
             }
                    
 
-            return _mapper.Map<AccountManagerReadDto>(account);
+            return _mapper.Map<AccountManagerDetailReadDto>(account);
         }
 
-        public AccountStaffReadDto GetStaffDetail(int id)
+        public AccountStaffDetailReadDto GetStaffDetail(int id)
         {
             var claims = (_httpContextAccessor.HttpContext.User.Identity as ClaimsIdentity).Claims;
 
             var role = claims.Where(x => x.Type == ClaimTypes.Role).FirstOrDefault().Value;
 
-            Account account = _unit.AccountRepository.Get(x => x.Id == id && x.Role.Name.Equals(Roles.Staff), x => x.Role, x => x.ManagedByNavigation);
+            Account account = _unit.AccountRepository.Get(x => x.Id == id && x.Role.Name.Equals(Roles.Staff),
+                                    includer: x => x.Include(staff => staff.Role)
+                                                    .Include(x => x.ManagedByNavigation)
+                                                    .Include(x => x.AssignedCarAccount).ThenInclude(assign => assign.Car));
 
             if (account == null)
             {
@@ -156,7 +161,7 @@ namespace AVC.Services.Implements
                     throw new PermissionDeniedException("Permission Denied");
                 }
             }
-            return _mapper.Map<AccountStaffReadDto>(account);
+            return _mapper.Map<AccountStaffDetailReadDto>(account);
         }
 
 
@@ -354,6 +359,11 @@ namespace AVC.Services.Implements
             AccountUpdateDto accountToPatch = _mapper.Map<AccountUpdateDto>(accountModelFromRepo);
 
             dto.ApplyTo(accountToPatch);
+
+            if (accountToPatch.RoleId == Roles.AdminId)
+            {
+                throw new NotFoundException("Role not found");
+            }
 
             _mapper.Map(accountToPatch, accountModelFromRepo);
 

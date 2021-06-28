@@ -14,8 +14,8 @@ namespace AVC.Services.Interfaces
     {
         PagingResponseDto<AccountStaffReadDto> GetStaffList(AccountQueryFilter filter);
         PagingResponseDto<AccountManagerReadDto> GetManagerList(AccountQueryFilter filter);
-        AccountManagerReadDto GetManagerDetail(int id);
-        AccountStaffReadDto GetStaffDetail(int id);
+        AccountManagerDetailReadDto GetManagerDetail(int id);
+        AccountStaffDetailReadDto GetStaffDetail(int id);
 
         AccountManagerReadDto CreateManager(AccountManagerCreateDtoFormWrapper accountCreateDtoWrapper);
         AccountStaffReadDto CreateStaff(AccountStaffCreateDtoFormWrapper accountCreateDtoWrapper);

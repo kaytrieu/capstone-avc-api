@@ -14,7 +14,9 @@ namespace AVC.Profiles
             CreateMap<Car, CarListReadDto>().ForMember(des => des.ManagedBy, opt => opt.MapFrom(src => src.ManagedByNavigation))
                 .ForMember(des => des.AssignTo, opt => opt.MapFrom(src => src.AssignedCar.SingleOrDefault(assign => assign.IsAvailable == true).Account));
             CreateMap<Car, CarReadDto>().ForMember(des => des.ManagedBy, opt => opt.MapFrom(src => src.ManagedByNavigation))
-                .ForMember(des => des.AssignTo, opt => opt.MapFrom(src => src.AssignedCar.SingleOrDefault(assign => assign.IsAvailable == true).Account));
+                .ForMember(des => des.AssignTo, opt => opt.MapFrom(src => src.AssignedCar.SingleOrDefault(assign => assign.IsAvailable == true).Account))
+                .ForMember(des => des.Issues, opt => opt.MapFrom(src => src.Issue));
+            CreateMap<Car, CarAssignedReadDto>();
         }
 
     }

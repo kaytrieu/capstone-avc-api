@@ -2,6 +2,7 @@
 using AVC.Dtos.AccountDtos;
 using AVC.Dtos.ProfileDtos;
 using AVC.Models;
+using System.Linq;
 
 namespace AVC.Profiles
 {
@@ -23,9 +24,17 @@ namespace AVC.Profiles
                 .ForMember(des => des.Password, opt => opt.MapFrom(src => src.NewPassword));
             CreateMap<Account, AccountManagerReadDto>()
                .ForMember(des => des.Role, opt => opt.MapFrom(src => src.Role.Name));
+            CreateMap<Account, AccountManagerDetailReadDto>()
+                .ForMember(des => des.Role, opt => opt.MapFrom(src => src.Role.Name))
+                .ForMember(des => des.AssignedStaffs, opt => opt.MapFrom(src => src.InverseManagedByNavigation))
+                .ForMember(des => des.AssignedCars, opt => opt.MapFrom(src => src.Car));
             CreateMap<Account, AccountStaffReadDto>()
                 .ForMember(des => des.Role, opt => opt.MapFrom(src => src.Role.Name))
                 .ForMember(des => des.ManagedByEmail, opt => opt.MapFrom(src => src.ManagedByNavigation.Email));
+            CreateMap<Account, AccountStaffDetailReadDto>()
+               .ForMember(des => des.Role, opt => opt.MapFrom(src => src.Role.Name))
+               .ForMember(des => des.ManagedBy, opt => opt.MapFrom(src => src.ManagedByNavigation))
+               .ForMember(des => des.AssignedCars, opt => opt.MapFrom(src => src.AssignedCarAccount.Where(assign => (bool)assign.IsAvailable).Select(assign => assign.Car)));
             CreateMap<Account, ProfileReadDto>()
                 .ForMember(des => des.Role, opt => opt.MapFrom(src => src.Role.Name));
             CreateMap<ProfileUpdateDto, Account>();
