@@ -12,6 +12,7 @@ namespace AVC.Services.Interfaces
     {
         PagingResponseDto<CarListReadDto> GetCarList(CarQueryFilter filter);
         CarReadDto GetCarDetail(int id);
-
+        void CreateNewCarByDevice(string deviceId);
+        void SetManagedBy(CarManagedByUpdateDto dto);
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
@@ -44,6 +45,16 @@ namespace AVC.Extensions.Extensions
                 sb.Append(b.ToString("X2"));
 
             return sb.ToString();
+        }
+
+        public static void CopyStream(this Stream input, Stream output)
+        {
+            byte[] buffer = new byte[32768];
+            int read;
+            while ((read = input.Read(buffer, 0, buffer.Length)) > 0)
+            {
+                output.Write(buffer, 0, read);
+            }
         }
 
         public class AuthorizeRolesAttribute : AuthorizeAttribute

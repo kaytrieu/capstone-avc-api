@@ -129,7 +129,7 @@ namespace AVC.Services.Implements
 
             if (account == null)
             {
-                throw new NotFoundException("Can not found account.");
+                throw new NotFoundException("Account not found");
             }
                    
 
@@ -149,7 +149,7 @@ namespace AVC.Services.Implements
 
             if (account == null)
             {
-                throw new NotFoundException("Can not found account.");
+                throw new NotFoundException("Account not found");
             }
 
             if (role == Roles.Manager)
@@ -158,7 +158,7 @@ namespace AVC.Services.Implements
 
                 if (account.ManagedBy != managerId)
                 {
-                    throw new PermissionDeniedException("Permission Denied");
+                    throw new PermissionDeniedException("Permission denied");
                 }
             }
             return _mapper.Map<AccountStaffDetailReadDto>(account);
@@ -172,7 +172,8 @@ namespace AVC.Services.Implements
 
             if (image != null && image.Length > 0)
             {
-                imageUrl = FirebaseService.UploadFileToFirebaseStorage(image.OpenReadStream(), ("Account" + id).GetHashString(), "Avatar", _config).Result;
+                string type = image.ContentType[image.ContentType.IndexOf(".")..];
+                imageUrl = FirebaseService.UploadFileToFirebaseStorage(image.OpenReadStream(), ("Account" + id).GetHashString() + type, "Avatar", _config).Result;
             }
 
             return imageUrl;
@@ -194,7 +195,7 @@ namespace AVC.Services.Implements
             {
                 if (ex.InnerException.ToString().Contains("duplicate"))
                 {
-                    throw new ConflictEntityException("Existed Email");
+                    throw new ConflictEntityException("Existed email");
                 }
                 else
                 {
@@ -229,7 +230,7 @@ namespace AVC.Services.Implements
             {
                 if (ex.InnerException.ToString().Contains("duplicate"))
                 {
-                    throw new ConflictEntityException("Existed Email");
+                    throw new ConflictEntityException("Existed email");
                 }
                 else
                 {
@@ -262,7 +263,7 @@ namespace AVC.Services.Implements
             {
                 if (!(account.Role.Name.Equals(Roles.Manager) || account.Role.Name.Equals(Roles.Staff)))
                 {
-                    throw new PermissionDeniedException("Permission Denied");
+                    throw new PermissionDeniedException("Permission denied");
                 }
             }
 
@@ -270,7 +271,7 @@ namespace AVC.Services.Implements
             {
                 if (!(account.Role.Name.Equals(Roles.Staff)))
                 {
-                    throw new PermissionDeniedException("Permission Denied");
+                    throw new PermissionDeniedException("Permission denied");
                 }
             }
 
@@ -328,7 +329,7 @@ namespace AVC.Services.Implements
 
             if (account == null)
             {
-                throw new NotFoundException("Staff not found");
+                throw new NotFoundException("Account not found");
             }
 
             if (account.ManagedBy != null && account.ManagedBy != dto.ManagerId)

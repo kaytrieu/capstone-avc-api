@@ -9,8 +9,7 @@ namespace AVC.Dtos.CarDtos
 {
     public class CarManagedByUpdateDto
     {
-        public int Id { get; set; }
-
-
+        public int CarId { get; set; }
+        public int ManagerId { get; set; }
     }
 }

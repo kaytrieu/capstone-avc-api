@@ -57,14 +57,20 @@ namespace AVC.Controllers
             return Ok(respone);
         }
 
-        //[AuthorizeRoles(Roles.Admin)]
-        //[HttpPut("managedBy")]
-        //public ActionResult SetManagedBy(AccountManagedByUpdateDto dto)
-        //{
-        //    _accountService.SetManagedBy(dto);
+        [AuthorizeRoles(Roles.Admin)]
+        [HttpPut("managedBy")]
+        public ActionResult SetManagedBy(CarManagedByUpdateDto dto)
+        {
+            _carService.SetManagedBy(dto);
+            return Ok();
+        }
 
-        //    return Ok();
-        //}
+        [HttpPost]
+        public ActionResult CreateCarByDeviceId(string deviceId)
+        {
+            _carService.CreateNewCarByDevice(deviceId);
+            return Ok();
+        }
 
         // PUT: api/Cars/5
         // To protect from overposting attacks, enable the specific properties you want to bind to, for

@@ -47,7 +47,7 @@ namespace AVC.Services.Implements
 
             if ((bool)!accountModel.IsAvailable)
             {
-                throw new UnauthorizedAccessException("Your Account is Deactivated");
+                throw new UnauthorizedAccessException("Account deactivated");
 
             }
             string tokenStr = GenerateJSONWebToken(accountModel);
@@ -108,7 +108,7 @@ namespace AVC.Services.Implements
             var account = _unit.AccountRepository.Get(x => x.Email.Equals(email));
             if (account == null || account.Password.Equals(""))
             {
-                throw new NotFoundException("Invalid Email");
+                throw new NotFoundException("Invalid email");
             }
 
             Random generator = new Random();
@@ -126,7 +126,7 @@ namespace AVC.Services.Implements
 
             if (accountModel == null)
             {
-                throw new NotFoundException("Account Not Found");
+                throw new NotFoundException("Account not found");
             }
 
             bool isAuthorized = accountModel.ResetPasswordToken.Equals(newPasswordDto.SecurityKey);
@@ -136,7 +136,7 @@ namespace AVC.Services.Implements
             if (!isAuthorized)
             {
                 _unit.SaveChanges();
-                throw new PermissionDeniedException("Security Key is not correct");
+                throw new PermissionDeniedException("Security key is not correct");
             }
 
             //Mapper to Update new password and salt

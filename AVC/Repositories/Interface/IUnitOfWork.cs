@@ -14,6 +14,7 @@ namespace AVC.Repositories.Interface
         IIssueRepository IssueRepository { get; }
         IModelVersionRepository ModelVersionRepository { get; }
         IIssueTypeRepository IssueTypeRepository { get; }
+        IDefaultConfigurationRepository DefaultConfigurationRepository { get; }
 
         void SaveChanges();
         Task SaveChangesAsync();

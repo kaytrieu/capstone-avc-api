@@ -69,7 +69,7 @@ namespace AVC.Services.Implements
             {
                 if (issueFromRepo.Car.ManagedBy != actorId)
                 {
-                    throw new PermissionDeniedException("Permission Denied");
+                    throw new PermissionDeniedException("Permission denied");
                 }
             }
 
@@ -78,7 +78,7 @@ namespace AVC.Services.Implements
                 var assigned = issueFromRepo.Car.AssignedCar.FirstOrDefault(x => (bool)x.IsAvailable);
                 if (assigned == null || assigned.AccountId != actorId)
                 {
-                    throw new PermissionDeniedException("Permission Denied");
+                    throw new PermissionDeniedException("Permission denied");
                 }
             }
 
@@ -170,14 +170,7 @@ namespace AVC.Services.Implements
 
         private string UploadImage(IFormFile image, int id)
         {
-            string imageUrl = string.Empty;
-
-            if (image != null && image.Length > 0)
-            {
-                imageUrl = FirebaseService.UploadFileToFirebaseStorage(image.OpenReadStream(), ("Issue" + id).GetHashString(), "IssueImage", _config).Result;
-            }
-
-            return imageUrl;
+             return FirebaseService.UploadFileToFirebaseStorage(image, ("Issue" + id).GetHashString(), "IssueImage", _config).Result;
         }
     }
 }
