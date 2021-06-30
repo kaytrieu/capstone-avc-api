@@ -172,8 +172,7 @@ namespace AVC.Services.Implements
 
             if (image != null && image.Length > 0)
             {
-                string type = image.ContentType[image.ContentType.IndexOf(".")..];
-                imageUrl = FirebaseService.UploadFileToFirebaseStorage(image.OpenReadStream(), ("Account" + id).GetHashString() + type, "Avatar", _config).Result;
+                imageUrl = FirebaseService.UploadFileToFirebaseStorage(image.OpenReadStream(), ("Account" + id).GetHashString(), "Avatar", _config).Result;
             }
 
             return imageUrl;

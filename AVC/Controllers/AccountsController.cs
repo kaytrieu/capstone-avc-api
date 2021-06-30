@@ -80,7 +80,7 @@ namespace AVC.Controllers
         /// <returns></returns>
         [AuthorizeRoles(Roles.Admin)]
         [HttpGet("manager/{id}")]
-        public ActionResult<AccountManagerReadDto> GetManagerAccount(int id)
+        public ActionResult<AccountManagerDetailReadDto> GetManagerAccount(int id)
         {
             var account = _accountService.GetManagerDetail(id);
 
@@ -94,7 +94,7 @@ namespace AVC.Controllers
         /// <returns></returns>
         [AuthorizeRoles(Roles.Admin, Roles.Manager)]
         [HttpGet("staff/{id}")]
-        public ActionResult<AccountStaffReadDto> GetStaffAccount(int id)
+        public ActionResult<AccountStaffDetailReadDto> GetStaffAccount(int id)
         {
             var account = _accountService.GetStaffDetail(id);
 
@@ -109,7 +109,7 @@ namespace AVC.Controllers
         /// <returns>Account for success, 401 for permission denied, 409 for email conflict</returns>
         [AuthorizeRoles(Roles.Admin)]
         [HttpPost("manager")]
-        public ActionResult<AccountManagerReadDto> PostManager(AccountManagerCreateDtoFormWrapper accountCreateDtoWrapper)
+        public ActionResult<AccountManagerReadDto> PostManager([FromForm] AccountManagerCreateDtoFormWrapper accountCreateDtoWrapper)
         {
             AccountManagerReadDto accountReadDto = _accountService.CreateManager(accountCreateDtoWrapper);
 
