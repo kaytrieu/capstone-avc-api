@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using AVC.Dtos.IssueDtos;
 using AVC.Dtos.PagingDtos;
 using AVC.Dtos.QueryFilter;
@@ -21,7 +21,7 @@ namespace AVC.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+  //  [Authorize]
     public class IssueController : ControllerBase
     {
         private readonly IIssueService _issueService;
