@@ -47,7 +47,7 @@ namespace AVC.Services.Implements
 
             _unit.SaveChanges();
 
-            issueModel = _unit.IssueRepository.Get(x => x.Id == issueModel.Id, x => x.Car);
+            issueModel = _unit.IssueRepository.Get(x => x.Id == issueModel.Id, x => x.Car, x=> x.Type);
 
             IssueReadDto issueReadDto = _mapper.Map<IssueReadDto>(issueModel);
 
