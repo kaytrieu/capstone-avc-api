@@ -1,13 +1,12 @@
-﻿using AVC.Dtos.CarDtos;
-using AVC.Models;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace AVC.Dtos.AccountDtos
 {
-    public class AccountStaffReadDto
+    public class AccountNotManagedByReadDto
     {
         public int Id { get; set; }
         public string Email { get; set; }
@@ -17,7 +16,5 @@ namespace AVC.Dtos.AccountDtos
         public string Phone { get; set; }
         public string Avatar { get; set; }
         public bool? IsAvailable { get; set; }
-        public int? ManagedBy { get; set; }
-        public string ManagedByEmail { get; set; }
     }
 }

@@ -44,7 +44,7 @@ namespace AVC.Controllers
         [Authorize]
         [HttpGet("staffs")]
         [AuthorizeRoles(Roles.Admin, Roles.Manager)]
-        public ActionResult<PagingResponseDto<AccountStaffReadDto>> GetStaffAccounts([FromQuery] AccountQueryFilter filter)
+        public ActionResult<PagingResponseDto<AccountReadDto>> GetStaffAccounts([FromQuery] AccountQueryFilter filter)
         {
             var claims = (HttpContext.User.Identity as ClaimsIdentity).Claims;
 
@@ -63,7 +63,7 @@ namespace AVC.Controllers
         [Authorize]
         [HttpGet("managers")]
         [AuthorizeRoles(Roles.Admin)]
-        public ActionResult<PagingResponseDto<AccountManagerReadDto>> GetManagerAccounts([FromQuery] AccountQueryFilter filter)
+        public ActionResult<PagingResponseDto<AccountNotManagedByReadDto>> GetManagerAccounts([FromQuery] AccountQueryFilter filter)
         {
             var claims = (HttpContext.User.Identity as ClaimsIdentity).Claims;
 
@@ -109,9 +109,9 @@ namespace AVC.Controllers
         /// <returns>Account for success, 401 for permission denied, 409 for email conflict</returns>
         [AuthorizeRoles(Roles.Admin)]
         [HttpPost("manager")]
-        public ActionResult<AccountManagerReadDto> PostManager([FromForm] AccountManagerCreateDtoFormWrapper accountCreateDtoWrapper)
+        public ActionResult<AccountNotManagedByReadDto> PostManager([FromForm] AccountManagerCreateDtoFormWrapper accountCreateDtoWrapper)
         {
-            AccountManagerReadDto accountReadDto = _accountService.CreateManager(accountCreateDtoWrapper);
+            AccountNotManagedByReadDto accountReadDto = _accountService.CreateManager(accountCreateDtoWrapper);
 
             //return Ok();
             return CreatedAtAction("GetStaffAccount", new { id = accountReadDto.Id }, accountReadDto);
@@ -125,10 +125,10 @@ namespace AVC.Controllers
         /// <returns>Account for success, 401 for permission denied, 409 for email conflict</returns>
         [AuthorizeRoles(Roles.Admin)]
         [HttpPost("staff")]
-        public ActionResult<AccountStaffReadDto> PostStaffAccount([FromForm] AccountStaffCreateDtoFormWrapper accountCreateDtoWrapper)
+        public ActionResult<AccountReadDto> PostStaffAccount([FromForm] AccountStaffCreateDtoFormWrapper accountCreateDtoWrapper)
         {
            
-            AccountStaffReadDto accountReadDto = _accountService.CreateStaff(accountCreateDtoWrapper);
+            AccountReadDto accountReadDto = _accountService.CreateStaff(accountCreateDtoWrapper);
 
             //return Ok();
             return CreatedAtAction("GetStaffAccount", new { id = accountReadDto.Id }, accountReadDto);

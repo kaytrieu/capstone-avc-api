@@ -17,7 +17,7 @@ namespace AVC.Dtos.AccountDtos
         public string Phone { get; set; }
         public string Avatar { get; set; }
         public bool? IsAvailable { get; set; }
-        public virtual AccountManagerReadDto ManagedBy { get; set; }
+        public virtual AccountNotManagedByReadDto ManagedBy { get; set; }
         public virtual ICollection<CarAssignedReadDto> AssignedCars { get; set; }
     }
 }

@@ -12,13 +12,13 @@ namespace AVC.Services.Interfaces
 {
     public interface IAccountService
     {
-        PagingResponseDto<AccountStaffReadDto> GetStaffList(AccountQueryFilter filter);
-        PagingResponseDto<AccountManagerReadDto> GetManagerList(AccountQueryFilter filter);
+        PagingResponseDto<AccountReadDto> GetStaffList(AccountQueryFilter filter);
+        PagingResponseDto<AccountNotManagedByReadDto> GetManagerList(AccountQueryFilter filter);
         AccountManagerDetailReadDto GetManagerDetail(int id);
         AccountStaffDetailReadDto GetStaffDetail(int id);
 
-        AccountManagerReadDto CreateManager(AccountManagerCreateDtoFormWrapper accountCreateDtoWrapper);
-        AccountStaffReadDto CreateStaff(AccountStaffCreateDtoFormWrapper accountCreateDtoWrapper);
+        AccountNotManagedByReadDto CreateManager(AccountManagerCreateDtoFormWrapper accountCreateDtoWrapper);
+        AccountReadDto CreateStaff(AccountStaffCreateDtoFormWrapper accountCreateDtoWrapper);
         void SetActivation(int id, AccountActivationDto accountActivationDto);
         void SetManagedBy(AccountManagedByUpdateDto dto);
         void Patch(int id, JsonMergePatchDocument<AccountUpdateDto> dto);

@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using AVC.Constant;
+using AVC.Dtos.AccountDtos;
 using AVC.Dtos.ProfileDtos;
 using AVC.Dtos.ReponseDtos;
 using AVC.Models;
@@ -75,20 +76,20 @@ namespace AVC.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpGet]
-        public ActionResult<ProfileReadDto> GetProfile()
+        public ActionResult<AccountReadDto> GetProfile()
         {
             var claims = (HttpContext.User.Identity as ClaimsIdentity).Claims;
 
             var id = int.Parse(claims.Where(x => x.Type == ClaimTypes.NameIdentifier).FirstOrDefault().Value);
 
-            Account account = _repository.Get(x => x.Id == id && x.IsAvailable == true, x => x.Role);
+            Account account = _repository.Get(x => x.Id == id && x.IsAvailable == true, x => x.Role, x => x.ManagedByNavigation);
 
             if (account == null)
             {
                 return NotFound(new ResponseDto("Can not found your account"));
             }
 
-            return Ok(_mapper.Map<ProfileReadDto>(account));
+            return Ok(_mapper.Map<AccountReadDto>(account));
         }
 
         [Authorize]

@@ -27,7 +27,7 @@ namespace AVC.Services.Implements
         {
         }
 
-        public PagingResponseDto<AccountStaffReadDto> GetStaffList(AccountQueryFilter filter)
+        public PagingResponseDto<AccountReadDto> GetStaffList(AccountQueryFilter filter)
         {
             var searchValue = filter.SearchValue;
             var page = filter.Page;
@@ -60,9 +60,9 @@ namespace AVC.Services.Implements
                 dto.Result = dto.Result.Where(x => x.IsAvailable == isAvailable);
             }
 
-            var accounts = _mapper.Map<IEnumerable<AccountStaffReadDto>>(dto.Result);
+            var accounts = _mapper.Map<IEnumerable<AccountReadDto>>(dto.Result);
 
-            var response = new PagingResponseDto<AccountStaffReadDto> { Result = accounts, Count = dto.Count };
+            var response = new PagingResponseDto<AccountReadDto> { Result = accounts, Count = dto.Count };
 
             if (limit > 0)
             {
@@ -77,7 +77,7 @@ namespace AVC.Services.Implements
             return response;
         }
 
-        public PagingResponseDto<AccountManagerReadDto> GetManagerList(AccountQueryFilter filter)
+        public PagingResponseDto<AccountNotManagedByReadDto> GetManagerList(AccountQueryFilter filter)
         {
             var searchValue = filter.SearchValue;
             var page = filter.Page;
@@ -99,9 +99,9 @@ namespace AVC.Services.Implements
                 dto.Result = dto.Result.Where(x => x.IsAvailable == isAvailable);
             }
 
-            var accounts = _mapper.Map<IEnumerable<AccountManagerReadDto>>(dto.Result);
+            var accounts = _mapper.Map<IEnumerable<AccountNotManagedByReadDto>>(dto.Result);
 
-            var response = new PagingResponseDto<AccountManagerReadDto> { Result = accounts, Count = dto.Count };
+            var response = new PagingResponseDto<AccountNotManagedByReadDto> { Result = accounts, Count = dto.Count };
 
             if (limit > 0)
             {
@@ -178,7 +178,7 @@ namespace AVC.Services.Implements
             return imageUrl;
         }
 
-        public AccountManagerReadDto CreateManager(AccountManagerCreateDtoFormWrapper accountCreateDtoWrapper)
+        public AccountNotManagedByReadDto CreateManager(AccountManagerCreateDtoFormWrapper accountCreateDtoWrapper)
         {
             var accountCreateDto = _mapper.Map<AccountManagerCreateDto>(accountCreateDtoWrapper);
 
@@ -208,12 +208,12 @@ namespace AVC.Services.Implements
 
             accountModel = _unit.AccountRepository.Get(x => x.Id == accountModel.Id, x => x.Role);
 
-            AccountManagerReadDto accountReadDto = _mapper.Map<AccountManagerReadDto>(accountModel);
+            AccountNotManagedByReadDto accountReadDto = _mapper.Map<AccountNotManagedByReadDto>(accountModel);
 
             return accountReadDto;
         }
 
-        public AccountStaffReadDto CreateStaff(AccountStaffCreateDtoFormWrapper accountCreateDtoWrapper)
+        public AccountReadDto CreateStaff(AccountStaffCreateDtoFormWrapper accountCreateDtoWrapper)
         {
             var accountCreateDto = _mapper.Map<AccountStaffCreateDto>(accountCreateDtoWrapper);
 
@@ -243,7 +243,7 @@ namespace AVC.Services.Implements
 
             accountModel = _unit.AccountRepository.Get(x => x.Id == accountModel.Id, x => x.Role, x => x.ManagedByNavigation);
 
-            return _mapper.Map<AccountStaffReadDto>(accountModel);
+            return _mapper.Map<AccountReadDto>(accountModel);
         }
 
         public void SetActivation(int id, AccountActivationDto accountActivationDto)
@@ -363,6 +363,24 @@ namespace AVC.Services.Implements
             if (accountToPatch.RoleId == Roles.AdminId)
             {
                 throw new NotFoundException("Role not found");
+            }
+
+            var oldRole = accountModelFromRepo.RoleId;
+            var newRole = accountToPatch.RoleId;
+
+            if(oldRole != newRole)
+            {
+                if(newRole == Roles.ManagerId)
+                {
+                    accountModelFromRepo.ManagedBy = null;
+                    var assignedList = accountModelFromRepo.AssignedCarAccount.Where(x => x.IsAvailable == true);
+
+                    foreach (var assign in assignedList)
+                    {
+                        assign.IsAvailable = false;
+                        assign.RemoveAt = DateTime.UtcNow.AddHours(7);
+                    }
+                }
             }
 
             _mapper.Map(accountToPatch, accountModelFromRepo);

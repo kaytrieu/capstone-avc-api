@@ -9,16 +9,16 @@ namespace AVC.Dtos.ProfileDtos
     {
         public ProfilePasswordUpdateDto()
         {
-            Salt = BCrypt.Net.BCrypt.GenerateSalt();
+            salt = BCrypt.Net.BCrypt.GenerateSalt();
         }
 
         private string newPassword;
         public string NewPassword
         {
             get { return newPassword; }
-            set { newPassword = BCrypt.Net.BCrypt.HashPassword(value, Salt); }
+            set { newPassword = BCrypt.Net.BCrypt.HashPassword(value, salt); }
         }
         public string OldPassword { get; set; }
-        public string Salt { get; }
+        private string salt;
     }
 }

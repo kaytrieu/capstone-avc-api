@@ -31,7 +31,7 @@ namespace AVC.Services.Implements
 
         public AuthenticationReadDto CheckLogin(AuthenticationPostDto dto)
         {
-            Account accountModel = _unit.AccountRepository.Get(x => x.Email == dto.Email, x => x.Role);
+            Account accountModel = _unit.AccountRepository.Get(x => x.Email == dto.Email, x => x.Role, x => x.ManagedByNavigation);
 
             if (accountModel == null)
             {
