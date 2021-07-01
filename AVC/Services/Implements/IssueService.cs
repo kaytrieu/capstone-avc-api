@@ -62,7 +62,7 @@ namespace AVC.Services.Implements
 
             var actorId = int.Parse(claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier).Value);
 
-            var issueFromRepo = _unit.IssueRepository.Get(issue => (bool)issue.IsAvailable, includer: x => x.Include(issue => issue.Car).ThenInclude(car => car.AssignedCar)
+            var issueFromRepo = _unit.IssueRepository.Get(issue => issue.Id == id && (bool)issue.IsAvailable, includer: x => x.Include(issue => issue.Car).ThenInclude(car => car.AssignedCar)
                                 .Include(issue => issue.Type));
 
             if (role.Equals(Roles.Manager))

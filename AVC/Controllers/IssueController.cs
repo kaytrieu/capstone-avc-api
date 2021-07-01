@@ -21,7 +21,7 @@ namespace AVC.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-  //  [Authorize]
+    [Authorize]
     public class IssueController : ControllerBase
     {
         private readonly IIssueService _issueService;
@@ -50,6 +50,7 @@ namespace AVC.Controllers
 
         }
 
+        [AllowAnonymous]
         [HttpPost()]
         public ActionResult<IssueReadDto> PostStaffAccount([FromForm] IssueCreateDto dto, IFormFile image)
         {
