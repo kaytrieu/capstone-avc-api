@@ -153,7 +153,7 @@ namespace AVC.Services.Implements
 
             if (issueFromRepo == null)
             {
-                throw new NotFoundException("Account not found");
+                throw new NotFoundException("Issue not found");
             }
 
             IssueCreateDto issueToPath = _mapper.Map<IssueCreateDto>(issueFromRepo);

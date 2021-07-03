@@ -15,6 +15,7 @@ namespace AVC.GenericRepository
         IQueryable<T> GetAll(params Expression<Func<T, object>>[] including);
         PagingDto<T> GetAll(int page, int limit, params Expression<Func<T, object>>[] including);
         public PagingDto<T> GetAll(int page, int limit, Expression<Func<T, bool>> predicate, Func<IQueryable<T>, IIncludableQueryable<T, object>> includer = null);
+        public PagingDto<T> GetAll(int page, int limit, Func<IQueryable<T>, IIncludableQueryable<T, object>> includer = null);
         PagingDto<T> GetAllWithOrdered(int page, int limit, Expression<Func<T, object>> orderBy, params Expression<Func<T, object>>[] including);
         PagingDto<T> GetAllWithOrdered(int page, int limit, Expression<Func<T, bool>> predicate, Expression<Func<T, object>> orderBy, params Expression<Func<T, object>>[] including);
         PagingDto<T> GetAllWithOrdered(int page, int limit, Expression<Func<T, bool>> predicate, Expression<Func<T, object>> orderBy, Func<IQueryable<T>, IIncludableQueryable<T, object>> includer = null);

@@ -1,6 +1,7 @@
 ﻿using AVC.Dtos.CarDtos;
 using AVC.Dtos.PagingDtos;
 using AVC.Dtos.QueryFilter;
+using Morcatko.AspNetCore.JsonMergePatch;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,5 +15,7 @@ namespace AVC.Services.Interfaces
         CarReadDto GetCarDetail(int id);
         void CreateNewCarByDevice(string deviceId);
         void SetManagedBy(CarManagedByUpdateDto dto);
+        void RegisterNewCar(int id, CarApprovalDto formDto);
+        void SetActivation(int id, CarActivationDto dto);
     }
 }

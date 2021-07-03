@@ -57,7 +57,7 @@ namespace AVC.Controllers
             IssueReadDto readDto = _issueService.CreateNewIssue(dto,image);
 
             //return Ok();
-            return CreatedAtAction("GetIssueList", new { id = readDto.Id }, readDto);
+            return CreatedAtAction("GetIssue", new { id = readDto.Id }, readDto);
         }
 
         [HttpPatch("{id}")]

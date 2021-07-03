@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Morcatko.AspNetCore.JsonMergePatch;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
@@ -65,10 +66,25 @@ namespace AVC.Controllers
             return Ok();
         }
 
+        [AuthorizeRoles(Roles.Admin)]
+        [HttpPut("{id}/activation")]
+        public ActionResult SetActivation(int id, CarActivationDto dto)
+        {
+            _carService.SetActivation(id, dto);
+            return Ok();
+        }
+
         [HttpPost]
         public ActionResult CreateCarByDeviceId(string deviceId)
         {
             _carService.CreateNewCarByDevice(deviceId);
+            return Ok();
+        }
+
+        [HttpPut("{id}/Approvement")]
+        public ActionResult RegisterCar(int id, [FromForm] CarApprovalDto dto)
+        {
+            _carService.RegisterNewCar(id, dto);
             return Ok();
         }
 

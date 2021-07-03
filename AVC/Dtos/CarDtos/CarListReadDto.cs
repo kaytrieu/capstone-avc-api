@@ -14,7 +14,9 @@ namespace AVC.Dtos.CarDtos
         public bool IsConnecting { get; set; }
         public bool? IsAvailable { get; set; }
         public DateTime? CreatedAt { get; set; }
+        public bool IsRunning { get; set; }
         public string DeviceId { get; set; }
+        public bool? IsApproved { get; set; }
         public virtual AccountNotManagedByReadDto ManagedBy { get; set; }
         public virtual AccountStaffAssignToReadDto AssignTo { get; set; }
 

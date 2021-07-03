@@ -22,9 +22,10 @@ namespace AVC.Models
         public bool? IsAvailable { get; set; }
         public DateTime CreatedAt { get; set; }
         public string DeviceId { get; set; }
-        public bool IsApproved { get; set; }
+        public bool? IsApproved { get; set; }
         public int? ManagedBy { get; set; }
         public string ConfigUrl { get; set; }
+        public bool IsRunning { get; set; }
 
         public virtual Account ManagedByNavigation { get; set; }
         public virtual ICollection<AssignedCar> AssignedCar { get; set; }

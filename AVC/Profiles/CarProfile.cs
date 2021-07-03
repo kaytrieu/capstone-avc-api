@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using AVC.Dtos.AccountDtos;
 using AVC.Dtos.CarDtos;
+using AVC.Extensions.Extensions;
 using AVC.Models;
 using System.Linq;
 
@@ -17,6 +18,8 @@ namespace AVC.Profiles
                 .ForMember(des => des.AssignTo, opt => opt.MapFrom(src => src.AssignedCar.SingleOrDefault(assign => assign.IsAvailable == true).Account))
                 .ForMember(des => des.Issues, opt => opt.MapFrom(src => src.Issue));
             CreateMap<Car, CarAssignedReadDto>();
+            CreateMap<CarApprovalDto, Car>();
+            CreateMap<Car, CarApprovalDto>().Ignore(car => car.ConfigFile).Ignore(car => car.ImageFile);
         }
 
     }

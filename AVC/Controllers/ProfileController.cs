@@ -106,16 +106,19 @@ namespace AVC.Controllers
                 return NotFound();
             }
 
-            accountModel.Avatar = FirebaseService.UploadFileToFirebaseStorage(profileUpdateDto.AvatarImage.OpenReadStream(), ("Account" + id).GetHashString(), "Avatar", _config).Result;
+            if (profileUpdateDto.AvatarImage != null)
+            {
+                accountModel.Avatar = FirebaseService.UploadFileToFirebaseStorage(profileUpdateDto.AvatarImage.OpenReadStream(), ("Account" + id).GetHashString(), "Avatar", _config).Result;
+            }
 
             //Mapper to Update new password and salt
             _mapper.Map(profileUpdateDto, accountModel);
 
-            _repository.Update(accountModel);
+                _repository.Update(accountModel);
 
-            _repository.SaveChanges();
+                _repository.SaveChanges();
 
-            return Ok();
+                return Ok();
+            }
         }
     }
-}

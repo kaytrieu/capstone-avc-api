@@ -1,6 +1,9 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
+using System;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -65,8 +68,16 @@ namespace AVC.Extensions.Extensions
             }
         }
 
+        public static IMappingExpression<TSource, TDestination> Ignore<TSource, TDestination>(
+            this IMappingExpression<TSource, TDestination> map,
+            Expression<Func<TDestination, object>> selector)
+        {
+            map.ForMember(selector, config => config.Ignore());
+            return map;
+        }
 
 
-        
+
+
     }
 }

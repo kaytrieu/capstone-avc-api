@@ -204,5 +204,17 @@ namespace AVC.GenericRepository
 
             return dto;
         }
+
+        public PagingDto<T> GetAll(int page, int limit, Func<IQueryable<T>, IIncludableQueryable<T, object>> includer = null)
+        {
+            IQueryable<T> query = _dbSet.AsQueryable();
+
+            if (includer != null)
+                query = includer(query);
+
+            PagingDto<T> dto = new PagingDto<T>(query, page, limit);
+
+            return dto;
+        }
     }
 }

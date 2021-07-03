@@ -123,7 +123,7 @@ namespace AVC.Services.Implements
 
             var role = claims.Where(x => x.Type == ClaimTypes.Role).FirstOrDefault().Value;
 
-            Account account = _unit.AccountRepository.Get(x => x.Id == id && x.Role.Name.Equals(Roles.Manager), x => x.Role, 
+            Account account = _unit.AccountRepository.Get(x => x.Id == id && x.Role.Name.Equals(Roles.Manager), x => x.Role,
                                                                                                                 x => x.InverseManagedByNavigation,
                                                                                                                 x => x.Car);
 
@@ -131,7 +131,7 @@ namespace AVC.Services.Implements
             {
                 throw new NotFoundException("Account not found");
             }
-                   
+
 
             return _mapper.Map<AccountManagerDetailReadDto>(account);
         }
@@ -252,74 +252,77 @@ namespace AVC.Services.Implements
             var role = claims.Where(x => x.Type == ClaimTypes.Role).FirstOrDefault().Value;
 
             Account account = _unit.AccountRepository.Get(x => x.Id == id, x => x.Role, x => x.ManagedByNavigation, x => x.InverseManagedByNavigation, x => x.Car);
-
-            if (account == null)
+            
+            if (account.IsAvailable != accountActivationDto.IsAvailable)
             {
-                throw new NotFoundException("Account not found");
-            }
-
-            if (role == Roles.Admin)
-            {
-                if (!(account.Role.Name.Equals(Roles.Manager) || account.Role.Name.Equals(Roles.Staff)))
+                if (account == null)
                 {
-                    throw new PermissionDeniedException("Permission denied");
+                    throw new NotFoundException("Account not found");
                 }
-            }
 
-            if (role == Roles.Manager)
-            {
-                if (!(account.Role.Name.Equals(Roles.Staff)))
+                if (role == Roles.Admin)
                 {
-                    throw new PermissionDeniedException("Permission denied");
-                }
-            }
-
-            if (!accountActivationDto.IsAvailable)
-            {
-                if (account.Role.Name.Equals(Roles.Manager))
-                {
-                    //get all staff managed by this manager
-                    var members = account.InverseManagedByNavigation;
-                    if (members.Count != 0)
+                    if (!(account.Role.Name.Equals(Roles.Manager) || account.Role.Name.Equals(Roles.Staff)))
                     {
-                        //set staff managed by nobody
-                        foreach (var item in members)
+                        throw new PermissionDeniedException("Permission denied");
+                    }
+                }
+
+                if (role == Roles.Manager)
+                {
+                    if (!(account.Role.Name.Equals(Roles.Staff)))
+                    {
+                        throw new PermissionDeniedException("Permission denied");
+                    }
+                }
+
+                if (!accountActivationDto.IsAvailable)
+                {
+                    if (account.Role.Name.Equals(Roles.Manager))
+                    {
+                        //get all staff managed by this manager
+                        var members = account.InverseManagedByNavigation;
+                        if (members.Count != 0)
                         {
-                            item.ManagedBy = null;
-                        }
-                        //disable assign car for all staff managed by this manager
-                        //set Car's managed by nobody
-                        foreach (var item in account.Car)
-                        {
-                            item.ManagedBy = null;
-                            foreach (var assigned in item.AssignedCar.Where(assign => assign.IsAvailable == true))
+                            //set staff managed by nobody
+                            foreach (var item in members)
                             {
-                                assigned.IsAvailable = false;
-                                assigned.RemoveAt = DateTime.UtcNow.AddHours(7);
+                                item.ManagedBy = null;
+                            }
+                            //disable assign car for all staff managed by this manager
+                            //set Car's managed by nobody
+                            foreach (var item in account.Car)
+                            {
+                                item.ManagedBy = null;
+                                foreach (var assigned in item.AssignedCar.Where(assign => assign.IsAvailable == true))
+                                {
+                                    assigned.IsAvailable = false;
+                                    assigned.RemoveAt = DateTime.UtcNow.AddHours(7);
+                                }
                             }
                         }
                     }
-                }
-                else
-                {
-                    //account.ManagedBy = null;
-                    //disable control car permission by this staff
-                    var assignedList = account.AssignedCarAccount.Where(x => x.IsAvailable == true);
-
-                    foreach (var assign in assignedList)
+                    else
                     {
-                        assign.IsAvailable = false;
-                        assign.RemoveAt = DateTime.UtcNow.AddHours(7);
+                        //account.ManagedBy = null;
+                        //disable control car permission by this staff
+                        var assignedList = account.AssignedCarAccount.Where(x => x.IsAvailable == true);
+
+                        foreach (var assign in assignedList)
+                        {
+                            assign.IsAvailable = false;
+                            assign.RemoveAt = DateTime.UtcNow.AddHours(7);
+                        }
                     }
                 }
+
+                //Mapper to Update new password and salt
+                _mapper.Map(accountActivationDto, account);
+
+                _unit.AccountRepository.Update(account);
+
+                _unit.SaveChanges();
             }
-
-            //Mapper to Update new password and salt
-            _mapper.Map(accountActivationDto, account);
-
-            _unit.AccountRepository.Update(account);
-
-            _unit.SaveChanges();
         }
 
         public void SetManagedBy(AccountManagedByUpdateDto dto)
@@ -368,9 +371,9 @@ namespace AVC.Services.Implements
             var oldRole = accountModelFromRepo.RoleId;
             var newRole = accountToPatch.RoleId;
 
-            if(oldRole != newRole)
+            if (oldRole != newRole)
             {
-                if(newRole == Roles.ManagerId)
+                if (newRole == Roles.ManagerId)
                 {
                     accountModelFromRepo.ManagedBy = null;
                     var assignedList = accountModelFromRepo.AssignedCarAccount.Where(x => x.IsAvailable == true);
@@ -379,6 +382,29 @@ namespace AVC.Services.Implements
                     {
                         assign.IsAvailable = false;
                         assign.RemoveAt = DateTime.UtcNow.AddHours(7);
+                    }
+                }
+                else if (newRole == Roles.StaffId)
+                {
+                    var accountManagedByList = _unit.AccountRepository.GetAll(acc => acc.ManagedBy == accountModelFromRepo.Id);
+
+                    foreach (var account in accountManagedByList)
+                    {
+                        account.ManagedBy = null;
+                        var assignedList = account.AssignedCarAccount.Where(x => x.IsAvailable == true);
+
+                        foreach (var assign in assignedList)
+                        {
+                            assign.IsAvailable = false;
+                            assign.RemoveAt = DateTime.UtcNow.AddHours(7);
+                        }
+                    }
+
+                    var carManagedByList = _unit.CarRepository.GetAll(car => car.ManagedBy == accountModelFromRepo.Id);
+
+                    foreach (var car in carManagedByList)
+                    {
+                        car.ManagedBy = null;
                     }
                 }
             }

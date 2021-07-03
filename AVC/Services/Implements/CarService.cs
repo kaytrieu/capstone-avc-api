@@ -13,6 +13,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Morcatko.AspNetCore.JsonMergePatch;
+using Morcatko.AspNetCore.JsonMergePatch.NewtonsoftJson.Builders;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -36,7 +38,7 @@ namespace AVC.Services.Implements
 
             var role = claims.Where(x => x.Type == ClaimTypes.Role).FirstOrDefault().Value;
 
-            Car carFromRepo = _unit.CarRepository.Get(x => x.Id == id && x.IsApproved,
+            Car carFromRepo = _unit.CarRepository.Get(x => x.Id == id && (bool)x.IsApproved,
                 includer: x => x.Include(car => car.ManagedByNavigation)
                                 .Include(car => car.AssignedCar).ThenInclude(assign => assign.Account)
                                 .Include(c => c.Issue).ThenInclude(issue => issue.Type));
@@ -57,6 +59,7 @@ namespace AVC.Services.Implements
             if (role.Equals(Roles.Staff))
             {
                 var assigned = carFromRepo.AssignedCar.FirstOrDefault(x => (bool)x.IsAvailable);
+
                 if (assigned == null || assigned.AccountId != actorId)
                 {
                     throw new PermissionDeniedException("Permission denied");
@@ -83,7 +86,7 @@ namespace AVC.Services.Implements
 
             PagingDto<Car> dto = null;
 
-            dto = _unit.CarRepository.GetAll(page, limit, x => x.Name.Contains(searchValue) && x.IsApproved,
+            dto = _unit.CarRepository.GetAll(page, limit, x => x.IsApproved == filter.IsApproved,
                 includer: x => x.Include(car => car.ManagedByNavigation).ThenInclude(manager => manager.Role)
                                 .Include(car => car.AssignedCar).ThenInclude(assign => assign.Account));
             var actorId = int.Parse(claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier).Value);
@@ -102,10 +105,12 @@ namespace AVC.Services.Implements
             {
                 dto.Result = dto.Result.Where(x => x.IsAvailable == isAvailable);
             }
-            if (filter.IsApproved != null)
+
+            if (filter.IsApproved.GetValueOrDefault())
             {
-                dto.Result = dto.Result.Where(x => x.IsApproved == filter.IsApproved);
+                dto.Result = dto.Result.Where(car => car.Name.Contains(searchValue));
             }
+
 
             var accounts = _mapper.Map<IEnumerable<CarListReadDto>>(dto.Result);
 
@@ -126,7 +131,7 @@ namespace AVC.Services.Implements
 
         public void SetManagedBy(CarManagedByUpdateDto dto)
         {
-            var car = _unit.CarRepository.Get(x => x.Id == dto.CarId, x => x.AssignedCar);
+            var car = _unit.CarRepository.Get(x => x.Id == dto.CarId && (bool)x.IsApproved && (bool)x.IsAvailable, x => x.AssignedCar);
 
             if (car == null)
             {
@@ -149,24 +154,38 @@ namespace AVC.Services.Implements
             _unit.SaveChanges();
         }
 
+        public void SetActivation(int id, CarActivationDto dto)
+        {
+            var car = _unit.CarRepository.Get(x => x.Id == id && (bool)x.IsApproved);
+
+            if (car == null)
+            {
+                throw new NotFoundException("Car not found");
+            }
+
+            if (dto.IsAvailable != car.IsAvailable)
+            {
+                if (!dto.IsAvailable)
+                {
+                    var assignedList = car.AssignedCar.Where(x => x.IsAvailable == true);
+
+                    foreach (var assign in assignedList)
+                    {
+                        assign.IsAvailable = false;
+                        assign.RemoveAt = DateTime.UtcNow.AddHours(7);
+                    }
+                }
+
+                car.IsAvailable = dto.IsAvailable;
+                _unit.CarRepository.Update(car);
+                _unit.SaveChanges();
+            }
+        }
+
         public void CreateNewCarByDevice(string deviceId)
         {
             var defaultConfgiUrl = _unit.DefaultConfigurationRepository.GetAll().FirstOrDefault().ConfigUrl;
-            var imageUrl = String.Empty;
-            //var req = WebRequest.Create(defaultConfgiUrl);
-            //var res = req.GetResponse();
-            //string contentType = res.ContentType;
-            //byte[] resBytes = Encoding.UTF8.GetBytes(res.ToString());
-
-            //using (Stream stream = res.GetResponseStream())
-            //{
-            //    stream.Write(resBytes, 0, resBytes.Length);
-            //    string fileExtension = contentType[(contentType.IndexOf('/') + 1)..];
-            //    imageUrl = FirebaseService.UploadFileToFirebaseStorage(stream, ("CarConfig" + deviceId).GetHashString() + "." + fileExtension, "CarConfig", _config).Result;
-            //    res.Dispose();
-            //    stream.Close();
-            //}
-
+            var configurl = String.Empty;
             var webRequest = WebRequest.Create(defaultConfgiUrl);
 
             using (var response = webRequest.GetResponse())
@@ -178,16 +197,48 @@ namespace AVC.Services.Implements
                 byte[] byteArray = Encoding.ASCII.GetBytes(strContent);
                 MemoryStream stream = new MemoryStream(byteArray);
                 string fileExtension = contentType[(contentType.IndexOf('/') + 1)..];
-                imageUrl = FirebaseService.UploadFileToFirebaseStorage(stream, ("CarConfig" + deviceId).GetHashString() + "." + fileExtension, "CarConfig", _config).Result;
+                configurl = FirebaseService.UploadFileToFirebaseStorage(stream, ("CarConfig" + deviceId).GetHashString() + "." + fileExtension, "CarConfig", _config).Result;
             }
 
-            Car car = new Car { DeviceId = deviceId, ConfigUrl = imageUrl };
+            Car car = new Car { DeviceId = deviceId, ConfigUrl = configurl };
             _unit.CarRepository.Add(car);
             _unit.SaveChanges();
         }
 
-        public void RegisterNewCar()
+        public void RegisterNewCar(int id, CarApprovalDto formDto)
         {
+            var carFromRepo = _unit.CarRepository.Get(car => car.Id == id);
+
+            if (carFromRepo == null || carFromRepo.IsApproved.GetValueOrDefault())
+            {
+                throw new NotFoundException("Car not found");
+            }
+
+            if (formDto.IsApproved)
+            {
+                CarApprovalDto carToPatch = _mapper.Map<CarApprovalDto>(carFromRepo);
+
+                CarApprovalDto dto = new CarApprovalDto { ManagedBy = formDto.ManagedBy, Name = formDto.Name, IsApproved = formDto.IsApproved };
+                JsonMergePatchDocument<CarApprovalDto> patchDto = PatchBuilder.Build(carToPatch, dto);
+                patchDto.ApplyTo(carToPatch);
+
+                _mapper.Map(carToPatch, carFromRepo);
+
+                if (formDto.ConfigFile != null)
+                {
+                    carFromRepo.ConfigUrl = FirebaseService.UploadFileToFirebaseStorage(formDto.ConfigFile, ("CarConfig" + carFromRepo.DeviceId).GetHashString(), "CarConfig", _config).Result;
+                }
+
+                if (formDto.ImageFile != null)
+                {
+                    carFromRepo.Image = FirebaseService.UploadFileToFirebaseStorage(formDto.ConfigFile, ("CarImage" + carFromRepo.DeviceId).GetHashString(), "CarConfig", _config).Result;
+                }
+            }
+            else
+            {
+                carFromRepo.IsApproved = false;
+            }
+            _unit.SaveChanges();
 
         }
 
