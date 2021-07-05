@@ -21,7 +21,6 @@ namespace AVC.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
     public class IssueController : ControllerBase
     {
         private readonly IIssueService _issueService;
@@ -31,6 +30,7 @@ namespace AVC.Controllers
             _issueService = issueService;
         }
 
+        [Authorize]
         // GET: api/Cars
         [HttpGet]
         public ActionResult<PagingResponseDto<IssueReadDto>> GetIssueList([FromQuery] IssueQueryFilter filter)
@@ -40,6 +40,7 @@ namespace AVC.Controllers
             return Ok(response);
         }
 
+        [Authorize]
         // GET: api/Cars/5
         [HttpGet("{id}")]
         public ActionResult<IssueReadDto> GetIssue(int id)
@@ -50,7 +51,6 @@ namespace AVC.Controllers
 
         }
 
-        [AllowAnonymous]
         [HttpPost()]
         public ActionResult<IssueReadDto> PostStaffAccount([FromForm] IssueCreateDto dto, IFormFile image)
         {
@@ -60,6 +60,7 @@ namespace AVC.Controllers
             return CreatedAtAction("GetIssue", new { id = readDto.Id }, readDto);
         }
 
+        [Authorize]
         [HttpPatch("{id}")]
         [Consumes(JsonMergePatchDocument.ContentType)]
         public IActionResult PatchAccount(int id, [FromBody] JsonMergePatchDocument<IssueCreateDto> dto)
