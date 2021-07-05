@@ -21,6 +21,7 @@ namespace AVC.Dtos.AccountDtos
         [Required]
         public string LastName { get; set; }
         [Phone]
+        [MaxLength(11)]
         public string Phone { get; set; }
     }
 }

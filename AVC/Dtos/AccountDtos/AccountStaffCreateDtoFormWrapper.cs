@@ -20,6 +20,7 @@ namespace AVC.Dtos.AccountDtos
         public string FirstName { get; set; }
         [Required]
         public string LastName { get; set; }
+        [MaxLength(11)]
         [Phone]
         public string Phone { get; set; }
         public int? ManagedBy { get; set; }

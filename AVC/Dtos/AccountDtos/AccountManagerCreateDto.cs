@@ -30,6 +30,7 @@ namespace AVC.Dtos.AccountDtos
         public string LastName { get; set; }
         [Required]
         public int RoleId { get; }
+        [MaxLength(11)]
         [Phone]
         public string Phone { get; set; }
     }

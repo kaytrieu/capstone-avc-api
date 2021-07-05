@@ -32,6 +32,7 @@ namespace AVC.Dtos.AccountDtos
         [JsonIgnore]
         public int RoleId { get; }
         [Phone]
+        [MaxLength(11)]
         public string Phone { get; set; }
         public int? ManagedBy { get; set; }
     }
