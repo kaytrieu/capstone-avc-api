@@ -13,7 +13,7 @@ namespace AVC.Profiles
             //Source to Target
             CreateMap<AccountStaffCreateDto, Account>();
             CreateMap<AccountStaffCreateDtoFormWrapper, AccountStaffCreateDto>();
-            CreateMap<AccountManagerCreateDtoFormWrapper, AccountStaffCreateDto>();
+            CreateMap<AccountManagerCreateDtoFormWrapper, AccountManagerCreateDto>();
             CreateMap<AccountManagerCreateDto, Account>();
             CreateMap<AccountUpdateDto, Account>();
             CreateMap<Account, AccountUpdateDto>();
