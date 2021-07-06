@@ -37,7 +37,6 @@ namespace AVC.Controllers
         /// <param name="profilePasswordUpdateDto"></param>
         /// <returns></returns>
         [Authorize]
-        [AuthorizeRoles(Roles.Admin, Roles.Manager)]
         [HttpPut("password")]
         public IActionResult PutAccountPassword(ProfilePasswordUpdateDto profilePasswordUpdateDto)
         {

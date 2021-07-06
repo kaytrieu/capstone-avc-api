@@ -2,6 +2,7 @@
 using AVC.Dtos.AuthenticationDtos;
 using AVC.Dtos.ReponseDtos;
 using AVC.Extensions;
+using AVC.Extensions.Extensions;
 using AVC.Models;
 using AVC.Repositories.Interface;
 using AVC.Services.Interfaces;
@@ -130,9 +131,9 @@ namespace AVC.Services.Implements
                 throw new NotFoundException("Account not found");
             }
 
-            bool isAuthorized = accountModel.ResetPasswordToken.Equals(newPasswordDto.SecurityKey);
+            bool isAuthorized = accountModel.ResetPasswordToken != null ? accountModel.ResetPasswordToken.Equals(newPasswordDto.SecurityKey) : false;
 
-            accountModel.ResetPasswordToken = "";
+            accountModel.ResetPasswordToken = null;
 
             if (!isAuthorized)
             {
