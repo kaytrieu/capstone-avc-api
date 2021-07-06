@@ -17,6 +17,7 @@ namespace AVC.Dtos.CarDtos
         public bool IsRunning { get; set; }
         public string DeviceId { get; set; }
         public bool? IsApproved { get; set; }
+        public string Image { get; set; }
         public virtual AccountNotManagedByReadDto ManagedBy { get; set; }
         public virtual AccountStaffAssignToReadDto AssignTo { get; set; }
 
