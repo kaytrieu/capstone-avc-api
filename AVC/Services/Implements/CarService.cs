@@ -185,6 +185,10 @@ namespace AVC.Services.Implements
         public void CreateNewCarByDevice(string deviceId)
         {
             var defaultConfgiUrl = _unit.DefaultConfigurationRepository.GetAll().FirstOrDefault().ConfigUrl;
+            if (defaultConfgiUrl.IsNullOrEmpty())
+            {
+                throw new NotFoundException("Default Config Not Inited");
+            }
             var configurl = String.Empty;
             var webRequest = WebRequest.Create(defaultConfgiUrl);
 

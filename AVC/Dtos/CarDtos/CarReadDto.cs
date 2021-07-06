@@ -15,6 +15,7 @@ namespace AVC.Dtos.CarDtos
         public string Name { get; set; }
         public bool IsConnecting { get; set; }
         public bool? IsAvailable { get; set; }
+        public bool IsRunning { get; set; }
         public DateTime? CreatedAt { get; set; }
         public string DeviceId { get; set; }
         public string ConfigUrl { get; set; }

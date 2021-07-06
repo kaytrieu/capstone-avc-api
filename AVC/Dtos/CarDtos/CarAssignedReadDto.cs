@@ -19,5 +19,7 @@ namespace AVC.Dtos.CarDtos
         public string DeviceId { get; set; }
         public string ConfigUrl { get; set; }
         public bool? IsApproved { get; set; }
+        public bool IsRunning { get; set; }
+
     }
 }

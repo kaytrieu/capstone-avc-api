@@ -92,11 +92,12 @@ namespace AVC.Services.Implements
             {
                 email
             };
-            string linkEmail = _config.GetValue<String>("ResetPasswordLink");
+            string linkEmail = _config.GetValue<String>("ResetPasswordLink") + email;
             string linkLogo = _config.GetValue<String>("LogoLink");
             var template = Properties.Resources.password_reset
-                .Replace("[account_name]", account.FirstName + account.LastName)
+                .Replace("[account_name]", account.FirstName + " " + account.LastName)
                 .Replace("[security_key]", securityKey)
+                .Replace("[reset_password_button]", linkEmail)
                 .Replace("[reset_password_link]", linkEmail)
                 .Replace("[link_to_logo]", linkLogo);
             var message = new Message(listemail, "[AVC System] Reset Your Password", template);
