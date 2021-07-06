@@ -3,13 +3,10 @@ using System.ComponentModel.DataAnnotations;
 
 namespace AVC.Dtos.CarDtos
 {
-    public class CarApprovalDto
+    public class CarUpdateDto
     {
         [Required]
-        public bool IsApproved { get; set; }
-        public IFormFile ImageFile { get; set; }
         public string Name { get; set; }
-        public int? ManagedBy { get; set; }
 
     }
 }

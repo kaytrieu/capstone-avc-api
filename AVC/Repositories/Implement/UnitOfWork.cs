@@ -18,6 +18,7 @@ namespace AVC.Repositories.Implement
         private readonly IModelVersionRepository _modelVersionRepository;
         private readonly IIssueTypeRepository _issueTypeRepository;
         private readonly IDefaultConfigurationRepository _defaultConfigurationRepository;
+        private readonly IAssignedCarRepository _assignedCarRepository;
         public UnitOfWork(AVCContext context)
         {
             _context = context;
@@ -35,6 +36,7 @@ namespace AVC.Repositories.Implement
         public IIssueTypeRepository IssueTypeRepository => _issueTypeRepository ?? new IssueTypeRepository(_context);
 
         public IDefaultConfigurationRepository DefaultConfigurationRepository => _defaultConfigurationRepository ?? new DefaultConfigurationRepository(_context);
+        public IAssignedCarRepository AssignedCarRepository => _assignedCarRepository ?? new AssignedCarRepository(_context);
 
         public void Dispose()
         {

@@ -182,6 +182,11 @@ namespace AVC.Services.Implements
             }
         }
 
+        public DefaultCarConfigDto GetDefaultCarConfig()
+        {
+            return _mapper.Map<DefaultCarConfigDto>(_unit.DefaultConfigurationRepository.GetAll().FirstOrDefault());
+        }
+
         public void CreateNewCarByDevice(string deviceId)
         {
             var defaultConfgiUrl = _unit.DefaultConfigurationRepository.GetAll().FirstOrDefault().ConfigUrl;
@@ -228,14 +233,9 @@ namespace AVC.Services.Implements
 
                 _mapper.Map(carToPatch, carFromRepo);
 
-                if (formDto.ConfigFile != null)
-                {
-                    carFromRepo.ConfigUrl = FirebaseService.UploadFileToFirebaseStorage(formDto.ConfigFile, ("CarConfig" + carFromRepo.DeviceId).GetHashString(), "CarConfig", _config).Result;
-                }
-
                 if (formDto.ImageFile != null)
                 {
-                    carFromRepo.Image = FirebaseService.UploadFileToFirebaseStorage(formDto.ConfigFile, ("CarImage" + carFromRepo.DeviceId).GetHashString(), "CarConfig", _config).Result;
+                    carFromRepo.Image = FirebaseService.UploadFileToFirebaseStorage(formDto.ImageFile, ("CarImage" + carFromRepo.DeviceId).GetHashString(), "CarImage", _config).Result;
                 }
             }
             else
@@ -244,6 +244,115 @@ namespace AVC.Services.Implements
             }
             _unit.SaveChanges();
 
+        }
+
+        public void Update(int id, CarUpdateDto dto)
+        {
+            var carFromRepo = _unit.CarRepository.Get(car => car.Id == id);
+
+            if (carFromRepo == null || !carFromRepo.IsApproved.GetValueOrDefault())
+            {
+                throw new NotFoundException("Car not found");
+            }
+
+            carFromRepo.Name = dto.Name;
+
+            _unit.SaveChanges();
+
+        }
+
+        public void UpdateImage(int id, IFormFile image)
+        {
+            var carFromRepo = _unit.CarRepository.Get(car => car.Id == id);
+
+            if (carFromRepo == null || !carFromRepo.IsApproved.GetValueOrDefault())
+            {
+                throw new NotFoundException("Car not found");
+            }
+
+            if (image != null)
+            {
+                carFromRepo.Image = FirebaseService.UploadFileToFirebaseStorage(image, ("CarImage" + carFromRepo.DeviceId).GetHashString(), "CarImage", _config).Result;
+            }
+
+            _unit.SaveChanges();
+        }
+
+        public void UpdateConfig(int id, IFormFile config)
+        {
+            var carFromRepo = _unit.CarRepository.Get(car => car.Id == id);
+
+            if (carFromRepo == null || !carFromRepo.IsApproved.GetValueOrDefault())
+            {
+                throw new NotFoundException("Car not found");
+            }
+
+            if (config != null)
+            {
+                carFromRepo.ConfigUrl = FirebaseService.UploadFileToFirebaseStorage(config, ("CarConfig" + carFromRepo.DeviceId).GetHashString(), "CarConfig", _config).Result;
+            }
+
+            _unit.SaveChanges();
+        }
+        public void UpdateDefaultConfig(IFormFile config)
+        {
+            var defaultConfig = _unit.DefaultConfigurationRepository.GetAll().FirstOrDefault();
+
+            if (config != null)
+            {
+                defaultConfig.ConfigUrl = FirebaseService.UploadFileToFirebaseStorage(config, "DefaultConfig", "CarConfig", _config).Result;
+                defaultConfig.LastModified = DateTime.UtcNow.AddHours(7);
+                _unit.SaveChanges();
+
+            }
+
+        }
+
+        public void AssignCar(int carId, int? staffId)
+        {
+            var carFromRepo = _unit.CarRepository.Get(car => car.Id == carId, x => x.AssignedCar);
+
+            if (carFromRepo == null || !carFromRepo.IsApproved.GetValueOrDefault())
+            {
+                throw new NotFoundException("Car not found");
+            }
+
+            var asCarFromRepo = carFromRepo.AssignedCar.Where(x => x.IsAvailable == true).FirstOrDefault();
+            
+            if (asCarFromRepo != null)
+            {
+                if (asCarFromRepo.AccountId == staffId)
+                {
+                    return;
+                }
+                asCarFromRepo.IsAvailable = false;
+                asCarFromRepo.RemoveAt = DateTime.UtcNow.AddHours(7);
+            }
+            
+            if (staffId != null)
+            {
+                var staffFromRepo = _unit.AccountRepository.Get(x => x.Id == staffId && x.ManagedBy == carFromRepo.ManagedBy && (bool)x.IsAvailable);
+
+                if (staffFromRepo == null)
+                {
+                    throw new NotFoundException("Staff not found");
+                }
+
+                var claims = (_httpContextAccessor.HttpContext.User.Identity as ClaimsIdentity).Claims;
+
+                var actorId = int.Parse(claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier).Value);
+
+                AssignedCar asCar = new AssignedCar { AccountId = (int)staffId, CarId = carId, AssignedBy = actorId };
+
+                _unit.AssignedCarRepository.Add(asCar);
+            }
+
+            _unit.SaveChanges();
+
+
+            //var asCarDto = _mapper.Map<AssignedCarInCarDetailReadDto>(asCar);
+
+            //return asCarDto;
         }
 
     }

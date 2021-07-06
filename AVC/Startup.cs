@@ -105,11 +105,13 @@ namespace AVC
 
             //repository
             services.AddScoped<IAccountRepository, AccountRepository>();
+            services.AddScoped<IAssignedCarRepository, AssignedCarRepository>();
             services.AddScoped<ICarRepository, CarRepository>();
             services.AddScoped<IRoleRepository, RoleRepository>();
             services.AddScoped<IIssueRepository, IssueRepository>();
             services.AddScoped<IModelVersionRepository, ModelVersionRepository>();
             services.AddScoped<IIssueTypeRepository, IssueTypeRepository>();
+            services.AddScoped<IDefaultConfigurationRepository, DefaultConfigurationRepository>();
 
             //unit of work
             services.AddTransient<IUnitOfWork, UnitOfWork>();

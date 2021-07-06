@@ -19,7 +19,8 @@ namespace AVC.Profiles
                 .ForMember(des => des.Issues, opt => opt.MapFrom(src => src.Issue));
             CreateMap<Car, CarAssignedReadDto>();
             CreateMap<CarApprovalDto, Car>();
-            CreateMap<Car, CarApprovalDto>().Ignore(car => car.ConfigFile).Ignore(car => car.ImageFile);
+            CreateMap<Car, CarApprovalDto>().Ignore(car => car.ImageFile);
+            CreateMap<DefaultConfiguration, DefaultCarConfigDto>();
         }
 
     }
