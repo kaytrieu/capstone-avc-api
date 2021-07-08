@@ -62,7 +62,7 @@ namespace AVC.Services.Implements
 
             var accounts = _mapper.Map<IEnumerable<AccountReadDto>>(dto.Result);
 
-            var response = new PagingResponseDto<AccountReadDto> { Result = accounts, Count = dto.Count };
+            var response = new PagingResponseDto<AccountReadDto>(accounts, page, limit);
 
             if (limit > 0)
             {
@@ -101,7 +101,7 @@ namespace AVC.Services.Implements
 
             var accounts = _mapper.Map<IEnumerable<AccountNotManagedByReadDto>>(dto.Result);
 
-            var response = new PagingResponseDto<AccountNotManagedByReadDto> { Result = accounts, Count = dto.Count };
+            var response = new PagingResponseDto<AccountNotManagedByReadDto> (accounts,page,limit);
 
             if (limit > 0)
             {

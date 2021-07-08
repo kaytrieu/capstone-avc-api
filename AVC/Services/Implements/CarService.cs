@@ -112,9 +112,9 @@ namespace AVC.Services.Implements
             }
 
 
-            var accounts = _mapper.Map<IEnumerable<CarListReadDto>>(dto.Result);
+            var cars = _mapper.Map<IEnumerable<CarListReadDto>>(dto.Result);
 
-            var response = new PagingResponseDto<CarListReadDto> { Result = accounts, Count = dto.Count };
+            var response = new PagingResponseDto<CarListReadDto>(cars, page, limit);
 
             if (limit > 0)
             {
@@ -405,7 +405,7 @@ namespace AVC.Services.Implements
         {
             var carFromRepo = _unit.CarRepository.Get(car => car.Id == carId);
 
-            if(carFromRepo != null)
+            if (carFromRepo != null)
             {
                 return carFromRepo.DeviceId;
             }
@@ -413,11 +413,11 @@ namespace AVC.Services.Implements
             return null;
         }
 
-        public WhenCarRunningMessage HandleWhenCarRunning (string deviceId)
+        public WhenCarRunningMessage HandleWhenCarRunning(string deviceId)
         {
             var carFromRepo = _unit.CarRepository.Get(car => car.DeviceId == deviceId, car => car.AssignedCar);
 
-            if(carFromRepo != null)
+            if (carFromRepo != null)
             {
                 carFromRepo.IsRunning = true;
                 _unit.SaveChanges();

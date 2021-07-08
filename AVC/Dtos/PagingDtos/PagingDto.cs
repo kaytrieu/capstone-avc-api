@@ -10,7 +10,7 @@ namespace AVC.Dtos.PagingDtos
     {
         public PagingDto(IQueryable<TEntity> src, int page, int limit)
         {
-            Result = src.Paging<TEntity>(page, limit);
+            Result = src;
             Count = src.Count();
         }
 

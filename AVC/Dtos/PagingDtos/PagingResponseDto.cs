@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AVC.Extensions.Extensions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -7,10 +8,10 @@ namespace AVC.Dtos.PagingDtos
 {
     public class PagingResponseDto<TEntity> where TEntity : class
     {
-        public PagingResponseDto(PagingDto<TEntity> dto)
+        public PagingResponseDto(IEnumerable<TEntity> dto, int page, int limit)
         {
-            Result = dto.Result;
-            Count = dto.Count;
+            Result = dto.AsQueryable().Paging(page, limit).AsEnumerable();
+            Count = dto.Count();
         }
 
         public PagingResponseDto()

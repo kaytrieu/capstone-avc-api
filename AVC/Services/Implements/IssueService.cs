@@ -125,7 +125,7 @@ namespace AVC.Services.Implements
 
             var issues = _mapper.Map<IEnumerable<IssueReadDto>>(dto.Result);
 
-            var response = new PagingResponseDto<IssueReadDto> { Result = issues, Count = dto.Count };
+            var response = new PagingResponseDto<IssueReadDto> (issues, page, limit);
 
             if (limit > 0)
             {
