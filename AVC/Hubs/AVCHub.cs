@@ -33,11 +33,12 @@ namespace AVC.Hubs
 
             var message = _carService.HandleCarConnected(deviceId);
 
-            if (!CarDic.ContainsKey(Context.ConnectionId))
-                CarDic.Add(Context.ConnectionId, message.carConnectedMessage.CarId);
+
 
             if (message.carConnectedMessage != null)
             {
+                if (!CarDic.ContainsKey(Context.ConnectionId))
+                    CarDic.Add(Context.ConnectionId, message.carConnectedMessage.CarId);
                 await SendCarConnectedToStaff(message.carConnectedMessage);
             }
 
