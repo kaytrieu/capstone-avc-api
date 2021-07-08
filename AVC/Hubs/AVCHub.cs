@@ -33,8 +33,6 @@ namespace AVC.Hubs
 
             var message = _carService.HandleCarConnected(deviceId);
 
-
-
             if (message.carConnectedMessage != null)
             {
                 if (!CarDic.ContainsKey(Context.ConnectionId))
@@ -53,6 +51,7 @@ namespace AVC.Hubs
 
         public async Task StartCar(int carId)
         {
+            Log.Information("startcar(" + carId + ")");
             var car = _carService.GetCarModel(carId);
 
             if (car != null)
@@ -64,12 +63,15 @@ namespace AVC.Hubs
                     if (car.IsRunning)
                     {
                         throw new HubException("Car is Running");
+                        Log.Error("Car Is Running");
+
                     }
 
                     await Clients.Client(CarDic.FirstOrDefault(x => x.Value == carId).Key).SendAsync("WhenCarStart", deviceId);
                 }
                 else
                 {
+                    Log.Error("Car is not connected");
                     throw new HubException("Car is not connected");
                 }
             }
@@ -83,6 +85,8 @@ namespace AVC.Hubs
 
         public async Task RunningCar(string deviceId)
         {
+            Log.Information("RunningCar(" + deviceId + ")");
+
             var message = _carService.HandleWhenCarRunning(deviceId);
 
             if (message != null)
@@ -97,6 +101,8 @@ namespace AVC.Hubs
 
         public async Task StopCar(int carId)
         {
+            Log.Information("StopCar(" + carId + ")");
+
             var car = _carService.GetCarModel(carId);
             if (car != null)
             {
@@ -126,6 +132,8 @@ namespace AVC.Hubs
 
         public async Task StoppingCar(string deviceId)
         {
+            Log.Information("StoppingCar(" + deviceId + ")");
+
             var message = _carService.HandleWhenCarStopping(deviceId);
 
             if (message != null)
