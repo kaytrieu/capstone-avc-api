@@ -67,7 +67,7 @@ namespace AVC.Hubs
 
                     }
 
-                    await Clients.Client(CarDic.FirstOrDefault(x => x.Value == carId).Key).SendAsync("WhenCarStart", deviceId);
+                    await Clients.Group(carGroup).SendAsync("WhenCarStart", deviceId);
                 }
                 else
                 {
