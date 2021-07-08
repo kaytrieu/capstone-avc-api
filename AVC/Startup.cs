@@ -30,6 +30,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
 using AVC.Services.Implements;
 using AVC.Services.Interfaces;
+using AVC.Hubs;
 
 namespace AVC
 {
@@ -121,7 +122,12 @@ namespace AVC
             {
                 var actionContext = x.GetRequiredService<IActionContextAccessor>().ActionContext;
                 var factory = x.GetRequiredService<IUrlHelperFactory>();
-                return factory.GetUrlHelper(actionContext);
+                if (actionContext != null)
+                    return factory.GetUrlHelper(actionContext);
+                else
+                {
+                    return null;
+                }
             });
 
             //email sender
@@ -209,6 +215,7 @@ namespace AVC
 
             app.UseEndpoints(endpoints =>
             {
+                endpoints.MapHub<AVCHub>("/hub");
                 endpoints.MapControllers();
             });
 

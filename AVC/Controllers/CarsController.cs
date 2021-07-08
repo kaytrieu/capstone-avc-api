@@ -58,29 +58,7 @@ namespace AVC.Controllers
             return Ok(respone);
         }       
         
-        /// <summary>
-        /// Get Default Config
-        /// </summary>
-        /// <returns>Config Dto</returns>
-        [HttpGet("DefaultConfig")]
-        public ActionResult<DefaultCarConfigDto> GetDefaultConfig()
-        {
-            var respone = _carService.GetDefaultCarConfig();
 
-            return Ok(respone);
-        }
-
-        /// <summary>
-        /// Edit ConfigFile
-        /// </summary>
-        /// <param name="configFile">Config File, null is no update</param>
-        /// <returns></returns>
-        [HttpPut("DefaultConfig")]
-        public ActionResult UpdateConfig(IFormFile configFile)
-        {
-            _carService.UpdateDefaultConfig(configFile);
-            return Ok();
-        }
 
         /// <summary>
         /// Update Car ManagedBy
@@ -178,6 +156,30 @@ namespace AVC.Controllers
         public ActionResult UpdateImage(int id, IFormFile imageFile)
         {
             _carService.UpdateImage(id, imageFile);
+            return Ok();
+        }
+
+        /// <summary>
+        /// Get Default Config
+        /// </summary>
+        /// <returns>Config Dto</returns>
+        [HttpGet("DefaultConfig")]
+        public ActionResult<DefaultCarConfigDto> GetDefaultConfig()
+        {
+            var respone = _carService.GetDefaultCarConfig();
+
+            return Ok(respone);
+        }
+
+        /// <summary>
+        /// Edit ConfigFile
+        /// </summary>
+        /// <param name="configFile">Config File, null is no update</param>
+        /// <returns></returns>
+        [HttpPut("DefaultConfig")]
+        public ActionResult UpdateDefaultConfig(IFormFile configFile)
+        {
+            _carService.UpdateDefaultConfig(configFile);
             return Ok();
         }
 

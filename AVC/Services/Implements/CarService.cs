@@ -1,10 +1,12 @@
 ﻿using AutoMapper;
 using AVC.Constant;
 using AVC.Dtos.CarDtos;
+using AVC.Dtos.HubMessages;
 using AVC.Dtos.PagingDtos;
 using AVC.Dtos.QueryFilter;
 using AVC.Extensions;
 using AVC.Extensions.Extensions;
+using AVC.Hubs;
 using AVC.Models;
 using AVC.Repositories.Interface;
 using AVC.Service;
@@ -214,6 +216,48 @@ namespace AVC.Services.Implements
             _unit.SaveChanges();
         }
 
+        public CarConnectedMessage HandleCarConnected(string deviceId)
+        {
+            var carFromRepo = _unit.CarRepository.Get(car => car.DeviceId == deviceId, car => car.AssignedCar);
+            List<int> accountIdList = new List<int>();
+
+            if (carFromRepo == null)
+            {
+                CreateNewCarByDevice(deviceId);
+            }
+            else
+            {
+                if (carFromRepo.IsApproved.GetValueOrDefault())
+                {
+                    carFromRepo.IsConnecting = true;
+
+                    int adminId = _unit.AccountRepository.Get(acc => acc.RoleId == Roles.AdminId).Id;
+                    accountIdList.Add(adminId);
+
+                    if (carFromRepo.ManagedBy != null)
+                    {
+                        accountIdList.Add((int)carFromRepo.ManagedBy);
+                    }
+
+                    var assigned = carFromRepo.AssignedCar.Where(x => x.IsAvailable == true).FirstOrDefault();
+                    if (assigned != null)
+                    {
+                        accountIdList.Add(assigned.AccountId);
+                    }
+
+                }
+            }
+
+            CarConnectedMessage message = new CarConnectedMessage
+            {
+                AccountIdList = accountIdList,
+                CarId = carFromRepo.Id
+            };
+
+            return (message);
+
+        }
+
         public void RegisterNewCar(int id, CarApprovalDto formDto)
         {
             var carFromRepo = _unit.CarRepository.Get(car => car.Id == id);
@@ -318,7 +362,7 @@ namespace AVC.Services.Implements
             }
 
             var asCarFromRepo = carFromRepo.AssignedCar.Where(x => x.IsAvailable == true).FirstOrDefault();
-            
+
             if (asCarFromRepo != null)
             {
                 if (asCarFromRepo.AccountId == staffId)
@@ -328,7 +372,7 @@ namespace AVC.Services.Implements
                 asCarFromRepo.IsAvailable = false;
                 asCarFromRepo.RemoveAt = DateTime.UtcNow.AddHours(7);
             }
-            
+
             if (staffId != null)
             {
                 var staffFromRepo = _unit.AccountRepository.Get(x => x.Id == staffId && x.ManagedBy == carFromRepo.ManagedBy && (bool)x.IsAvailable);

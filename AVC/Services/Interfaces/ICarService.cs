@@ -1,4 +1,5 @@
 ﻿using AVC.Dtos.CarDtos;
+using AVC.Dtos.HubMessages;
 using AVC.Dtos.PagingDtos;
 using AVC.Dtos.QueryFilter;
 using Microsoft.AspNetCore.Http;
@@ -24,5 +25,6 @@ namespace AVC.Services.Interfaces
         void UpdateConfig(int id, IFormFile config);
         DefaultCarConfigDto GetDefaultCarConfig();
         void UpdateDefaultConfig(IFormFile config);
+        CarConnectedMessage HandleCarConnected(string deviceId);
     }
 }
