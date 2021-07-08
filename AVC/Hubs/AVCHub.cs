@@ -27,18 +27,18 @@ namespace AVC.Hubs
             {
                 await SendCarConnectedToStaff(message);
             }
+
         }
 
         public async Task SendCarConnectedToStaff(CarConnectedMessage message)
         {
-            await Clients.Group("Staff").SendAsync("CarConnectedNoti", message);
+            await Clients.Group("Account").SendAsync("WhenCarConnectedNoti", message);
         }
 
-        public async Task ConnectStaff(int staffId)
+        public async Task ConnectAccount(int accountId)
         {
-            await Groups.AddToGroupAsync(Context.ConnectionId, "Staff");
-            Log.Information(Groups.ToString());
-            Log.Information(staffId + " is connected with ClientID: " + Context.ConnectionId);
+            await Groups.AddToGroupAsync(Context.ConnectionId, "Account");
+            Log.Information(accountId + " is connected with ClientID: " + Context.ConnectionId);
         }
 
         public override Task OnDisconnectedAsync(Exception exception)
