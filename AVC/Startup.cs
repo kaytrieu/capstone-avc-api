@@ -68,6 +68,7 @@ namespace AVC
             services.AddSignalR(o =>
             {
                 o.EnableDetailedErrors = true;
+                o.MaximumReceiveMessageSize = 50000000;
             });
 
             int apiVersion = Configuration.GetValue<int>("Version");
