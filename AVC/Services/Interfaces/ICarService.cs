@@ -25,6 +25,10 @@ namespace AVC.Services.Interfaces
         void UpdateConfig(int id, IFormFile config);
         DefaultCarConfigDto GetDefaultCarConfig();
         void UpdateDefaultConfig(IFormFile config);
-        CarConnectedMessage HandleCarConnected(string deviceId);
+        HandleCarConnectedObject HandleCarConnected(string deviceId);
+        string GetDeviceIdByCarId(int carId);
+        WhenCarRunningMessage HandleWhenCarRunning(string deviceId);
+        WhenCarStoppingMessage HandleWhenCarStopping(string deviceId);
+        WhenCarDisconnectedMessage HandleWhenCarDisconnected(int carId);
     }
 }

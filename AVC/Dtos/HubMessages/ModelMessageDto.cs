@@ -5,9 +5,7 @@ using System.Threading.Tasks;
 
 namespace AVC.Dtos.HubMessages
 {
-    public class CarConnectedMessage
+    public class ModelMessageDto
     {
-        public List<int> AccountIdList { get; set; }
-        public int CarId { get; set; }
     }
 }

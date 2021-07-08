@@ -6,7 +6,6 @@ using AVC.Dtos.PagingDtos;
 using AVC.Dtos.QueryFilter;
 using AVC.Extensions;
 using AVC.Extensions.Extensions;
-using AVC.Hubs;
 using AVC.Models;
 using AVC.Repositories.Interface;
 using AVC.Service;
@@ -24,7 +23,6 @@ using System.Linq;
 using System.Net;
 using System.Security.Claims;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace AVC.Services.Implements
 {
@@ -158,7 +156,7 @@ namespace AVC.Services.Implements
 
         public void SetActivation(int id, CarActivationDto dto)
         {
-            var car = _unit.CarRepository.Get(x => x.Id == id && (bool)x.IsApproved);
+            var car = _unit.CarRepository.Get(x => x.Id == id && (bool)x.IsApproved, car => car.AssignedCar);
 
             if (car == null)
             {
@@ -189,74 +187,6 @@ namespace AVC.Services.Implements
             return _mapper.Map<DefaultCarConfigDto>(_unit.DefaultConfigurationRepository.GetAll().FirstOrDefault());
         }
 
-        public void CreateNewCarByDevice(string deviceId)
-        {
-            var defaultConfgiUrl = _unit.DefaultConfigurationRepository.GetAll().FirstOrDefault().ConfigUrl;
-            if (defaultConfgiUrl.IsNullOrEmpty())
-            {
-                throw new NotFoundException("Default Config Not Inited");
-            }
-            var configurl = String.Empty;
-            var webRequest = WebRequest.Create(defaultConfgiUrl);
-
-            using (var response = webRequest.GetResponse())
-            using (var content = response.GetResponseStream())
-            using (var reader = new StreamReader(content))
-            {
-                string contentType = response.ContentType;
-                var strContent = reader.ReadToEnd();
-                byte[] byteArray = Encoding.ASCII.GetBytes(strContent);
-                MemoryStream stream = new MemoryStream(byteArray);
-                string fileExtension = contentType[(contentType.IndexOf('/') + 1)..];
-                configurl = FirebaseService.UploadFileToFirebaseStorage(stream, ("CarConfig" + deviceId).GetHashString() + "." + fileExtension, "CarConfig", _config).Result;
-            }
-
-            Car car = new Car { DeviceId = deviceId, ConfigUrl = configurl };
-            _unit.CarRepository.Add(car);
-            _unit.SaveChanges();
-        }
-
-        public CarConnectedMessage HandleCarConnected(string deviceId)
-        {
-            var carFromRepo = _unit.CarRepository.Get(car => car.DeviceId == deviceId, car => car.AssignedCar);
-            List<int> accountIdList = new List<int>();
-
-            if (carFromRepo == null)
-            {
-                CreateNewCarByDevice(deviceId);
-            }
-            else
-            {
-                if (carFromRepo.IsApproved.GetValueOrDefault())
-                {
-                    carFromRepo.IsConnecting = true;
-
-                    int adminId = _unit.AccountRepository.Get(acc => acc.RoleId == Roles.AdminId).Id;
-                    accountIdList.Add(adminId);
-
-                    if (carFromRepo.ManagedBy != null)
-                    {
-                        accountIdList.Add((int)carFromRepo.ManagedBy);
-                    }
-
-                    var assigned = carFromRepo.AssignedCar.Where(x => x.IsAvailable == true).FirstOrDefault();
-                    if (assigned != null)
-                    {
-                        accountIdList.Add(assigned.AccountId);
-                    }
-
-                }
-            }
-
-            CarConnectedMessage message = new CarConnectedMessage
-            {
-                AccountIdList = accountIdList,
-                CarId = carFromRepo.Id
-            };
-
-            return (message);
-
-        }
 
         public void RegisterNewCar(int id, CarApprovalDto formDto)
         {
@@ -397,6 +327,195 @@ namespace AVC.Services.Implements
             //var asCarDto = _mapper.Map<AssignedCarInCarDetailReadDto>(asCar);
 
             //return asCarDto;
+        }
+
+        public void CreateNewCarByDevice(string deviceId)
+        {
+            var defaultConfgiUrl = _unit.DefaultConfigurationRepository.GetAll().FirstOrDefault().ConfigUrl;
+            if (defaultConfgiUrl.IsNullOrEmpty())
+            {
+                throw new NotFoundException("Default Config Not Inited");
+            }
+            var configurl = String.Empty;
+            var webRequest = WebRequest.Create(defaultConfgiUrl);
+
+            using (var response = webRequest.GetResponse())
+            using (var content = response.GetResponseStream())
+            using (var reader = new StreamReader(content))
+            {
+                string contentType = response.ContentType;
+                var strContent = reader.ReadToEnd();
+                byte[] byteArray = Encoding.ASCII.GetBytes(strContent);
+                MemoryStream stream = new MemoryStream(byteArray);
+                string fileExtension = contentType[(contentType.IndexOf('/') + 1)..];
+                configurl = FirebaseService.UploadFileToFirebaseStorage(stream, ("CarConfig" + deviceId).GetHashString() + "." + fileExtension, "CarConfig", _config).Result;
+            }
+
+            Car car = new Car { DeviceId = deviceId, ConfigUrl = configurl };
+            _unit.CarRepository.Add(car);
+            _unit.SaveChanges();
+        }
+
+        public HandleCarConnectedObject HandleCarConnected(string deviceId)
+        {
+            var carFromRepo = _unit.CarRepository.Get(car => car.DeviceId == deviceId, car => car.AssignedCar);
+            List<int> accountIdList = new List<int>();
+            HandleCarConnectedObject message = null;
+
+            if (carFromRepo == null)
+            {
+                CreateNewCarByDevice(deviceId);
+            }
+            else
+            {
+                if (carFromRepo.IsApproved.GetValueOrDefault() && carFromRepo.IsAvailable.GetValueOrDefault())
+                {
+                    carFromRepo.IsConnecting = true;
+                    _unit.SaveChanges();
+
+
+                    int adminId = _unit.AccountRepository.Get(acc => acc.RoleId == Roles.AdminId).Id;
+                    accountIdList.Add(adminId);
+
+                    if (carFromRepo.ManagedBy != null)
+                    {
+                        accountIdList.Add((int)carFromRepo.ManagedBy);
+                    }
+
+                    var assigned = carFromRepo.AssignedCar.Where(x => x.IsAvailable == true).FirstOrDefault();
+
+                    if (assigned != null)
+                    {
+                        accountIdList.Add(assigned.AccountId);
+                    }
+
+                    CarConnectedMessage carConnectedMessage = new CarConnectedMessage(accountIdList, carFromRepo.Id);
+                    CarMessageDto carMessageDto = _mapper.Map<CarMessageDto>(carFromRepo);
+                    message = new HandleCarConnectedObject(carConnectedMessage, carMessageDto);
+
+
+                }
+            }
+
+            return (message);
+
+        }
+
+        public string GetDeviceIdByCarId(int carId)
+        {
+            var carFromRepo = _unit.CarRepository.Get(car => car.Id == carId);
+
+            if(carFromRepo != null)
+            {
+                return carFromRepo.DeviceId;
+            }
+
+            return null;
+        }
+
+        public WhenCarRunningMessage HandleWhenCarRunning (string deviceId)
+        {
+            var carFromRepo = _unit.CarRepository.Get(car => car.DeviceId == deviceId, car => car.AssignedCar);
+
+            if(carFromRepo != null)
+            {
+                carFromRepo.IsRunning = true;
+                _unit.SaveChanges();
+
+                List<int> relatedAccount = new List<int>();
+
+                int adminId = _unit.AccountRepository.Get(acc => acc.RoleId == Roles.AdminId).Id;
+                relatedAccount.Add(adminId);
+
+                if (carFromRepo.ManagedBy != null)
+                {
+                    relatedAccount.Add((int)carFromRepo.ManagedBy);
+                }
+
+                var assigned = carFromRepo.AssignedCar.Where(x => x.IsAvailable == true).FirstOrDefault();
+
+                if (assigned != null)
+                {
+                    relatedAccount.Add(assigned.AccountId);
+                }
+
+                WhenCarRunningMessage whenCarRunningMessage = new WhenCarRunningMessage(relatedAccount, carFromRepo.Id);
+
+                return whenCarRunningMessage;
+            }
+
+            return null;
+        }
+
+        public WhenCarStoppingMessage HandleWhenCarStopping(string deviceId)
+        {
+            var carFromRepo = _unit.CarRepository.Get(car => car.DeviceId == deviceId, car => car.AssignedCar);
+
+            if (carFromRepo != null)
+            {
+                carFromRepo.IsRunning = false;
+                _unit.SaveChanges();
+
+                List<int> relatedAccount = new List<int>();
+
+                int adminId = _unit.AccountRepository.Get(acc => acc.RoleId == Roles.AdminId).Id;
+
+                relatedAccount.Add(adminId);
+
+                if (carFromRepo.ManagedBy != null)
+                {
+                    relatedAccount.Add((int)carFromRepo.ManagedBy);
+                }
+
+                var assigned = carFromRepo.AssignedCar.Where(x => x.IsAvailable == true).FirstOrDefault();
+
+                if (assigned != null)
+                {
+                    relatedAccount.Add(assigned.AccountId);
+                }
+
+                WhenCarStoppingMessage whenCarStoppingMessage = new WhenCarStoppingMessage(relatedAccount, carFromRepo.Id);
+
+                return whenCarStoppingMessage;
+            }
+
+            return null;
+        }
+
+        public WhenCarDisconnectedMessage HandleWhenCarDisconnected(int carId)
+        {
+            var carFromRepo = _unit.CarRepository.Get(car => car.Id == carId, car => car.AssignedCar);
+
+            if (carFromRepo != null)
+            {
+                carFromRepo.IsRunning = false;
+                carFromRepo.IsConnecting = false;
+                _unit.SaveChanges();
+
+                List<int> relatedAccount = new List<int>();
+
+                int adminId = _unit.AccountRepository.Get(acc => acc.RoleId == Roles.AdminId).Id;
+
+                relatedAccount.Add(adminId);
+
+                if (carFromRepo.ManagedBy != null)
+                {
+                    relatedAccount.Add((int)carFromRepo.ManagedBy);
+                }
+
+                var assigned = carFromRepo.AssignedCar.Where(x => x.IsAvailable == true).FirstOrDefault();
+
+                if (assigned != null)
+                {
+                    relatedAccount.Add(assigned.AccountId);
+                }
+
+                WhenCarDisconnectedMessage whenCarDisconnectedMessage = new WhenCarDisconnectedMessage(relatedAccount, carFromRepo.Id);
+
+                return whenCarDisconnectedMessage;
+            }
+
+            return null;
         }
 
     }
