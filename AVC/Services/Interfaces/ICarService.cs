@@ -2,6 +2,7 @@
 using AVC.Dtos.HubMessages;
 using AVC.Dtos.PagingDtos;
 using AVC.Dtos.QueryFilter;
+using AVC.Models;
 using Microsoft.AspNetCore.Http;
 using Morcatko.AspNetCore.JsonMergePatch;
 using System;
@@ -26,7 +27,7 @@ namespace AVC.Services.Interfaces
         DefaultCarConfigDto GetDefaultCarConfig();
         void UpdateDefaultConfig(IFormFile config);
         HandleCarConnectedObject HandleCarConnected(string deviceId);
-        string GetDeviceIdByCarId(int carId);
+        Car GetCarModel(int carId);
         WhenCarRunningMessage HandleWhenCarRunning(string deviceId);
         WhenCarStoppingMessage HandleWhenCarStopping(string deviceId);
         WhenCarDisconnectedMessage HandleWhenCarDisconnected(int carId);

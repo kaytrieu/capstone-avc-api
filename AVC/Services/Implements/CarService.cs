@@ -361,6 +361,8 @@ namespace AVC.Services.Implements
             var carFromRepo = _unit.CarRepository.Get(car => car.DeviceId == deviceId, car => car.AssignedCar);
             List<int> accountIdList = new List<int>();
             HandleCarConnectedObject message = null;
+            CarConnectedMessage carConnectedMessage = null;
+            CarMessageDto carMessageDto = null;
 
             if (carFromRepo == null)
             {
@@ -389,25 +391,24 @@ namespace AVC.Services.Implements
                         accountIdList.Add(assigned.AccountId);
                     }
 
-                    CarConnectedMessage carConnectedMessage = new CarConnectedMessage(accountIdList, carFromRepo.Id);
-                    CarMessageDto carMessageDto = _mapper.Map<CarMessageDto>(carFromRepo);
-                    message = new HandleCarConnectedObject(carConnectedMessage, carMessageDto);
-
-
+                    carConnectedMessage = new CarConnectedMessage(accountIdList, carFromRepo.Id);
+                    carMessageDto = _mapper.Map<CarMessageDto>(carFromRepo);
                 }
             }
+
+            message = new HandleCarConnectedObject(carConnectedMessage, carMessageDto);
 
             return (message);
 
         }
 
-        public string GetDeviceIdByCarId(int carId)
+        public Car GetCarModel(int carId)
         {
             var carFromRepo = _unit.CarRepository.Get(car => car.Id == carId);
 
             if (carFromRepo != null)
             {
-                return carFromRepo.DeviceId;
+                return carFromRepo;
             }
 
             return null;

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.SignalR;
 using Serilog;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace AVC.Hubs
@@ -35,11 +36,12 @@ namespace AVC.Hubs
             if (!CarDic.ContainsKey(Context.ConnectionId))
                 CarDic.Add(Context.ConnectionId, message.carConnectedMessage.CarId);
 
-            if (message != null)
+            if (message.carConnectedMessage != null)
             {
                 await SendCarConnectedToStaff(message.carConnectedMessage);
-                await Clients.Caller.SendAsync("WhenCarConnectedReturn", message.carMessageDto);
             }
+
+            await Clients.Caller.SendAsync("WhenCarConnectedReturn", message.carMessageDto);
 
         }
 
@@ -50,16 +52,31 @@ namespace AVC.Hubs
 
         public async Task StartCar(int carId)
         {
-            string deviceId = _carService.GetDeviceIdByCarId(carId);
+            var car = _carService.GetCarModel(carId);
 
-            if (deviceId != null)
+            if (car != null)
             {
-                await Clients.Group(carGroup).SendAsync("WhenCarStart", deviceId);
+                string deviceId = car.DeviceId;
+
+                if (CarDic.ContainsValue(carId))
+                {
+                    if (car.IsRunning)
+                    {
+                        throw new HubException("Car is Running");
+                    }
+
+                    await Clients.Client(CarDic.FirstOrDefault(x => x.Value == carId).Key).SendAsync("WhenCarStart", deviceId);
+                }
+                else
+                {
+                    throw new HubException("Car is not connected");
+                }
             }
             else
             {
                 //send start Car Fail notification
                 Log.Error("Car not found to start.");
+                throw new HubException("Car not found");
             }
         }
 
@@ -79,14 +96,28 @@ namespace AVC.Hubs
 
         public async Task StopCar(int carId)
         {
-            string deviceId = _carService.GetDeviceIdByCarId(carId);
-
-            if (deviceId != null)
+            var car = _carService.GetCarModel(carId);
+            if (car != null)
             {
-                await Clients.Group(carGroup).SendAsync("WhenCarStop", deviceId);
+                if (car.IsRunning)
+                {
+                    string deviceId = car.DeviceId;
+
+                    await Clients.Group(carGroup).SendAsync("WhenCarStop", deviceId);
+
+                }
+                else if (car.IsConnecting)
+                {
+                    throw new HubException("Car is Stopping");
+                }
+                else
+                {
+                    throw new HubException("Car is not connected");
+                }
             }
             else
             {
+                throw new HubException("Car Not Found");
                 //send start Car Fail notification
                 Log.Error("Car not found to stop.");
             }
