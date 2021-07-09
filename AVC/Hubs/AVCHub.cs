@@ -58,22 +58,19 @@ namespace AVC.Hubs
             {
                 string deviceId = car.DeviceId;
 
-                if (CarDic.ContainsValue(carId))
+                if (car.IsRunning)
                 {
-                    if (car.IsRunning)
-                    {
-                        throw new HubException("Car is Running");
-                        Log.Error("Car Is Running");
+                    throw new HubException("Car is Running");
+                    Log.Error("Car Is Running");
 
-                    }
-
-                    await Clients.Group(carGroup).SendAsync("WhenCarStart", deviceId);
                 }
-                else
+                else if (!car.IsConnecting)
                 {
                     Log.Error("Car is not connected");
                     throw new HubException("Car is not connected");
                 }
+
+                await Clients.Group(carGroup).SendAsync("WhenCarStart", deviceId);
             }
             else
             {
@@ -81,6 +78,7 @@ namespace AVC.Hubs
                 Log.Error("Car not found to start.");
                 throw new HubException("Car not found");
             }
+
         }
 
         public async Task RunningCar(string deviceId)
