@@ -69,7 +69,7 @@ namespace AVC
             {
                 o.EnableDetailedErrors = true;
                 o.MaximumReceiveMessageSize = 50000000;
-            }).AddAzureSignalR();
+            });
 
             int apiVersion = Configuration.GetValue<int>("Version");
 
