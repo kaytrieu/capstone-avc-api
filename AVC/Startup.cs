@@ -68,8 +68,7 @@ namespace AVC
             services.AddSignalR(o =>
             {
                 o.EnableDetailedErrors = true;
-                o.MaximumReceiveMessageSize = 50000000;
-            });
+            }).AddAzureSignalR("Endpoint=https://avc-signalr-hub.service.signalr.net;AccessKey=Qzv39/9C+p7seRArYZWRQf7JofCrfJj4oy8Kkcr7CRA=;Version=1.0;");
 
             int apiVersion = Configuration.GetValue<int>("Version");
 

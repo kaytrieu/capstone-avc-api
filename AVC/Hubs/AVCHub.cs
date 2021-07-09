@@ -60,8 +60,8 @@ namespace AVC.Hubs
 
                 if (car.IsRunning)
                 {
-                    throw new HubException("Car is Running");
                     Log.Error("Car Is Running");
+                    throw new HubException("Car is Running");
 
                 }
                 else if (!car.IsConnecting)
@@ -122,9 +122,9 @@ namespace AVC.Hubs
             }
             else
             {
+                Log.Error("Car not found to stop.");
                 throw new HubException("Car Not Found");
                 //send start Car Fail notification
-                Log.Error("Car not found to stop.");
             }
         }
 
