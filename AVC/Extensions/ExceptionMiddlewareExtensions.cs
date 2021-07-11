@@ -48,7 +48,18 @@ namespace AVC.Extension
                     if (exception != null)
                     {
                         //var errorDto = new ResponseDto(context.Response.StatusCode == (int)HttpStatusCode.InternalServerError ? (env.IsDevelopment() ? exception?.Error.Message : "Interval server error") : exception?.Error.Message);
-                        var errorDto = new ResponseDto(exception?.Error.StackTrace);
+                        var errorMsg = "";
+
+                        if(context.Response.StatusCode == (int)HttpStatusCode.InternalServerError)
+                        {
+                            errorMsg = exception?.Error.StackTrace;
+                        }
+                        else
+                        {
+                            errorMsg = exception?.Error.Message;
+                        }
+
+                        var errorDto = new ResponseDto(errorMsg);
 
                         //await context.Response.WriteAsync(new ErrorDetails()
                         //{
