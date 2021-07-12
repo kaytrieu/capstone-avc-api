@@ -185,7 +185,7 @@ namespace AVC.Services.Implements
                     BranchName = defaultBracnch
                 };
 
-                var dir = new DirectoryInfo("D:/GitPushCheck");
+                var dir = new DirectoryInfo(_trainModelConfig.GitFolderPath);
 
                 if (!dir.Exists)
                 {
