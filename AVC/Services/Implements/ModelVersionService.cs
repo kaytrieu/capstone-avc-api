@@ -79,7 +79,7 @@ namespace AVC.Services.Implements
         {
             var modelFromRepo = _unit.ModelVersionRepository.Get(x => x.Id == modelId, x => x.ModelStatus);
 
-            if(modelFromRepo == null)
+            if (modelFromRepo == null)
             {
                 throw new NotFoundException("Model not found");
             }
@@ -135,7 +135,7 @@ namespace AVC.Services.Implements
         public void ModelTraining(int modelId)
         {
             var model = _unit.ModelVersionRepository.Get(x => x.Id == modelId);
-            
+
             if (model == null)
             {
                 throw new NotFoundException("Model not found");
@@ -193,90 +193,79 @@ namespace AVC.Services.Implements
                 }
 
                 using var repo = new Repository(_trainModelConfig.GitFolderPath);
-                try
+                if (dir.Exists)
                 {
-                    if (dir.Exists)
+                    LibGit2Sharp.PullOptions options = new LibGit2Sharp.PullOptions
                     {
-                        LibGit2Sharp.PullOptions options = new LibGit2Sharp.PullOptions
+                        FetchOptions = new FetchOptions
                         {
-                            FetchOptions = new FetchOptions
+                            CredentialsProvider = new CredentialsHandler(
+                        (url, usernameFromUrl, types) =>
+                            new UsernamePasswordCredentials()
                             {
-                                CredentialsProvider = new CredentialsHandler(
-                            (url, usernameFromUrl, types) =>
-                                new UsernamePasswordCredentials()
-                                {
-                                    Username = _trainModelConfig.Username,
-                                    Password = _trainModelConfig.Password
-                                })
-                            }
-                        };
+                                Username = _trainModelConfig.Username,
+                                Password = _trainModelConfig.Password
+                            })
+                        }
+                    };
 
-                        // User information to create a merge commit
-                        var signature = new LibGit2Sharp.Signature(
-                            new Identity("Kay", _trainModelConfig.Username), DateTime.UtcNow.AddHours(7));
+                    // User information to create a merge commit
+                    var signature = new LibGit2Sharp.Signature(
+                        new Identity("Kay", _trainModelConfig.Username), DateTime.UtcNow.AddHours(7));
 
-                        Commands.Pull(repo, signature, options);
-                    }
-
-                    Remote remote = repo.Network.Remotes["origin"];
-
-                    var localBranch = repo.Branches[branchName];
-
-                    if (localBranch == null)
-                    {
-                        localBranch = repo.CreateBranch(branchName);
-                    }
-
-                    Commands.Checkout(repo, localBranch);
-
-                    repo.RemoveUntrackedFiles();
-
-                    repo.Branches.Update(localBranch, b => b.Remote = remote.Name, b => b.UpstreamBranch = localBranch.CanonicalName);
-
-                    PushOptions pushOptions = new PushOptions();
-                    pushOptions.CredentialsProvider = new CredentialsHandler(
-                         (url, usernameFromUrl, types) =>
-                                new UsernamePasswordCredentials
-                                {
-                                    Username = _trainModelConfig.Username,
-                                    Password = _trainModelConfig.Password
-                                });
-
-                    using (Stream fileStream = new FileStream(filePath, FileMode.Create))
-                    {
-                        fileStream.Position = 0;
-                        await zip.CopyToAsync(fileStream);
-                        //fileStream.EndWrite();
-                        fileStream.Flush();
-                        fileStream.Dispose();
-                        fileStream.Close();
-                    }
-
-                    Commands.Stage(repo, "*");
-
-                    // Create the committer's signature and commit
-                    Signature author = new Signature("Kay", _trainModelConfig.Username, DateTime.UtcNow.AddHours(7));
-                    Signature committer = author;
-
-                    // Commit to the repository
-                    Commit commit = repo.Commit("Create new model", author, committer);
-
-                    repo.Network.Push(localBranch, pushOptions);
+                    Commands.Pull(repo, signature, options);
                 }
-                catch (Exception e)
+
+                Remote remote = repo.Network.Remotes["origin"];
+
+                var localBranch = repo.Branches[branchName];
+
+                if (localBranch == null)
                 {
-                    throw e;
+                    localBranch = repo.CreateBranch(branchName);
                 }
-                finally
+
+                Commands.Checkout(repo, localBranch);
+
+                repo.RemoveUntrackedFiles();
+
+                repo.Branches.Update(localBranch, b => b.Remote = remote.Name, b => b.UpstreamBranch = localBranch.CanonicalName);
+
+                PushOptions pushOptions = new PushOptions();
+                pushOptions.CredentialsProvider = new CredentialsHandler(
+                     (url, usernameFromUrl, types) =>
+                            new UsernamePasswordCredentials
+                            {
+                                Username = _trainModelConfig.Username,
+                                Password = _trainModelConfig.Password
+                            });
+
+                using (Stream fileStream = new FileStream(filePath, FileMode.Create))
                 {
-                    Commands.Checkout(repo, defaultBracnch);
+                    fileStream.Position = 0;
+                    await zip.CopyToAsync(fileStream);
+                    //fileStream.EndWrite();
+                    fileStream.Flush();
+                    fileStream.Dispose();
+                    fileStream.Close();
+                }
 
-                    var localBranch = repo.Branches[branchName];
+                Commands.Stage(repo, "*");
 
-                    if (localBranch != null)
-                    {
-                        repo.Branches.Remove(localBranch);
-                    }
+                // Create the committer's signature and commit
+                Signature author = new Signature("Kay", _trainModelConfig.Username, DateTime.UtcNow.AddHours(7));
+                Signature committer = author;
+
+                // Commit to the repository
+                Commit commit = repo.Commit("Create new model", author, committer);
+
+                repo.Network.Push(localBranch, pushOptions);
+
+                Commands.Checkout(repo, defaultBracnch);
+
+                if (localBranch != null)
+                {
+                    repo.Branches.Remove(localBranch);
                 }
             }
         }
