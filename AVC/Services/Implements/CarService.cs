@@ -86,7 +86,7 @@ namespace AVC.Services.Implements
 
             PagingDto<Car> dto = null;
 
-            dto = _unit.CarRepository.GetAll(page, limit, x => x.IsApproved == filter.IsApproved,
+            dto = _unit.CarRepository.GetAllWithOrderedDecs(page, limit, x => x.IsApproved == filter.IsApproved, x => x.CreatedAt,
                 includer: x => x.Include(car => car.ManagedByNavigation).ThenInclude(manager => manager.Role)
                                 .Include(car => car.AssignedCar).ThenInclude(assign => assign.Account));
             var actorId = int.Parse(claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier).Value);

@@ -28,6 +28,7 @@ namespace AVC.Models
         public virtual DbSet<ModelStatus> ModelStatus { get; set; }
         public virtual DbSet<ModelVersion> ModelVersion { get; set; }
         public virtual DbSet<Role> Role { get; set; }
+        public virtual DbSet<UserNotification> UserNotification { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -258,6 +259,24 @@ namespace AVC.Models
                     .IsRequired()
                     .HasMaxLength(50)
                     .IsUnicode(false);
+            });
+
+            modelBuilder.Entity<UserNotification>(entity =>
+            {
+                entity.Property(e => e.CreatedAt)
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("((getdate() AT TIME ZONE 'Pacific Standard Time'))");
+
+                entity.Property(e => e.Message).HasMaxLength(4000);
+
+                entity.Property(e => e.Type)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.HasOne(d => d.Receiver)
+                    .WithMany(p => p.UserNotification)
+                    .HasForeignKey(d => d.ReceiverId)
+                    .HasConstraintName("FK_UserNotification_Account");
             });
 
             OnModelCreatingPartial(modelBuilder);

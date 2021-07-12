@@ -44,7 +44,7 @@ namespace AVC.Services.Implements
 
             PagingDto<Account> dto = null;
 
-            dto = _unit.AccountRepository.GetAll(page, limit, x => x.RoleId == staffRoleId && (x.LastName.Contains(searchValue) || x.FirstName.Contains(searchValue)), x => x.Role, x => x.ManagedByNavigation);
+            dto = _unit.AccountRepository.GetAllWithOrderedDecs(page, limit, x => x.RoleId == staffRoleId && (x.LastName.Contains(searchValue) || x.FirstName.Contains(searchValue)), x => x.CreatedAt, x => x.Role, x => x.ManagedByNavigation);
 
 
             if (role.Equals(Roles.Manager))
@@ -92,7 +92,7 @@ namespace AVC.Services.Implements
 
             var managerRoleId = _unit.RoleRepository.Get(x => x.Name.Equals(Roles.Manager)).Id;
 
-            PagingDto<Account> dto = _unit.AccountRepository.GetAll(page, limit, x => x.RoleId == managerRoleId && (x.LastName.Contains(searchValue) || x.FirstName.Contains(searchValue)), x => x.Role);
+            PagingDto<Account> dto = _unit.AccountRepository.GetAllWithOrderedDecs(page, limit, x => x.RoleId == managerRoleId && (x.LastName.Contains(searchValue) || x.FirstName.Contains(searchValue)), x => x.CreatedAt, x => x.Role);
 
             if (isAvailable != null)
             {
@@ -101,7 +101,7 @@ namespace AVC.Services.Implements
 
             var accounts = _mapper.Map<IEnumerable<AccountNotManagedByReadDto>>(dto.Result);
 
-            var response = new PagingResponseDto<AccountNotManagedByReadDto> (accounts,page,limit);
+            var response = new PagingResponseDto<AccountNotManagedByReadDto>(accounts, page, limit);
 
             if (limit > 0)
             {
@@ -252,7 +252,7 @@ namespace AVC.Services.Implements
             var role = claims.Where(x => x.Type == ClaimTypes.Role).FirstOrDefault().Value;
 
             Account account = _unit.AccountRepository.Get(x => x.Id == id, x => x.Role, x => x.ManagedByNavigation, x => x.InverseManagedByNavigation, x => x.Car);
-            
+
             if (account.IsAvailable != accountActivationDto.IsAvailable)
             {
                 if (account == null)

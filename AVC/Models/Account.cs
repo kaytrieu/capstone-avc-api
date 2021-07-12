@@ -15,6 +15,7 @@ namespace AVC.Models
             AssignedCarAssignedByNavigation = new HashSet<AssignedCar>();
             Car = new HashSet<Car>();
             InverseManagedByNavigation = new HashSet<Account>();
+            UserNotification = new HashSet<UserNotification>();
         }
 
         public int Id { get; set; }
@@ -37,5 +38,6 @@ namespace AVC.Models
         public virtual ICollection<AssignedCar> AssignedCarAssignedByNavigation { get; set; }
         public virtual ICollection<Car> Car { get; set; }
         public virtual ICollection<Account> InverseManagedByNavigation { get; set; }
+        public virtual ICollection<UserNotification> UserNotification { get; set; }
     }
 }

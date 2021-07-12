@@ -31,6 +31,7 @@ using Microsoft.AspNetCore.Mvc.Routing;
 using AVC.Services.Implements;
 using AVC.Services.Interfaces;
 using AVC.Hubs;
+using AVC.Constants;
 
 namespace AVC
 {
@@ -132,8 +133,12 @@ namespace AVC
 
             //email sender
             var emailConfig = Configuration.GetSection("EmailConfiguration")
-                .Get<EmailConfiguration>();
+                .Get<EmailConfiguration>();            
+            var trainModelConfig = Configuration.GetSection("TrainModelConfig")
+                .Get<TrainModelConfig>();
+
             services.AddSingleton(emailConfig);
+            services.AddSingleton(trainModelConfig);
 
             services.AddSwaggerGen(c =>
             {

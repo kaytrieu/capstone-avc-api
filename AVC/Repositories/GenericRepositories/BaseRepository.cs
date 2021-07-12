@@ -147,60 +147,60 @@ namespace AVC.GenericRepository
 
         public PagingDto<T> GetAllWithOrdered(int page, int limit, Expression<Func<T, object>> orderBy, params Expression<Func<T, object>>[] including)
         {
-            IQueryable<T> query = _dbSet.AsQueryable();
+            IQueryable<T> query = _dbSet.AsQueryable().OrderBy(orderBy);
 
-            PagingDto<T> dto = new PagingDto<T>(DbSetIncluding(query, including).OrderBy(orderBy), page, limit);
+            PagingDto<T> dto = new PagingDto<T>(DbSetIncluding(query, including), page, limit);
 
             return dto;
         }
 
         public PagingDto<T> GetAllWithOrdered(int page, int limit, Expression<Func<T, bool>> predicate, Expression<Func<T, object>> orderBy, params Expression<Func<T, object>>[] including)
         {
-            IQueryable<T> query = _dbSet.AsQueryable();
+            IQueryable<T> query = _dbSet.AsQueryable().OrderBy(orderBy);
 
-            PagingDto<T> dto = new PagingDto<T>(DbSetIncluding(query, including).Where(predicate).OrderBy(orderBy), page, limit);
+            PagingDto<T> dto = new PagingDto<T>(DbSetIncluding(query, including).Where(predicate), page, limit);
 
             return dto;
         }
 
         public PagingDto<T> GetAllWithOrderedDecs(int page, int limit, Expression<Func<T, object>> orderBy, params Expression<Func<T, object>>[] including)
         {
-            IQueryable<T> query = _dbSet.AsQueryable();
+            IQueryable<T> query = _dbSet.AsQueryable().OrderByDescending(orderBy);
 
-            PagingDto<T> dto = new PagingDto<T>(DbSetIncluding(query, including).OrderByDescending(orderBy), page, limit);
+            PagingDto<T> dto = new PagingDto<T>(DbSetIncluding(query, including), page, limit);
 
             return dto;
         }
 
         public PagingDto<T> GetAllWithOrderedDecs(int page, int limit, Expression<Func<T, bool>> predicate, Expression<Func<T, object>> orderBy, params Expression<Func<T, object>>[] including)
         {
-            IQueryable<T> query = _dbSet.AsQueryable();
+            IQueryable<T> query = _dbSet.AsQueryable().OrderByDescending(orderBy);
 
-            PagingDto<T> dto = new PagingDto<T>(DbSetIncluding(query, including).Where(predicate).OrderByDescending(orderBy), page, limit);
+            PagingDto<T> dto = new PagingDto<T>(DbSetIncluding(query, including).Where(predicate), page, limit);
 
             return dto;
         }
 
         public PagingDto<T> GetAllWithOrdered(int page, int limit, Expression<Func<T, bool>> predicate, Expression<Func<T, object>> orderBy, Func<IQueryable<T>, IIncludableQueryable<T, object>> includer = null)
         {
-            IQueryable<T> query = _dbSet.AsQueryable();
+            IQueryable<T> query = _dbSet.AsQueryable().OrderBy(orderBy);
 
             if (includer != null)
                 query = includer(query);
 
-            PagingDto<T> dto = new PagingDto<T>(query.Where(predicate).OrderBy(orderBy), page, limit);
+            PagingDto<T> dto = new PagingDto<T>(query.Where(predicate), page, limit);
 
             return dto;
         }
 
         public PagingDto<T> GetAllWithOrderedDecs(int page, int limit, Expression<Func<T, bool>> predicate, Expression<Func<T, object>> orderBy, Func<IQueryable<T>, IIncludableQueryable<T, object>> includer = null)
         {
-            IQueryable<T> query = _dbSet.AsQueryable();
+            IQueryable<T> query = _dbSet.AsQueryable().OrderByDescending(orderBy);
 
             if (includer != null)
                 query = includer(query);
 
-            PagingDto<T> dto = new PagingDto<T>(query.Where(predicate).OrderByDescending(orderBy), page, limit);
+            PagingDto<T> dto = new PagingDto<T>(query.Where(predicate), page, limit);
 
             return dto;
         }

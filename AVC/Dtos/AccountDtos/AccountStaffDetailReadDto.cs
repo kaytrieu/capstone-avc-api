@@ -20,6 +20,13 @@ namespace AVC.Dtos.AccountDtos
         public DateTime CreatedAt { get; set; }
 
         public virtual AccountNotManagedByReadDto ManagedBy { get; set; }
-        public virtual ICollection<CarAssignedReadDto> AssignedCars { get; set; }
+
+        private ICollection<CarAssignedReadDto> assignedCars;
+
+        public virtual ICollection<CarAssignedReadDto> AssignedCars
+        {
+            get { return assignedCars.OrderByDescending(x => x.CreatedAt).ToList(); }
+            set { assignedCars = value; }
+        }
     }
 }
