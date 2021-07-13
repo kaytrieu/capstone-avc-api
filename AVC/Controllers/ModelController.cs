@@ -21,6 +21,7 @@ namespace AVC.Controllers
 
         [Authorize]
         [HttpPost]
+        [RequestSizeLimit(100_000_000)]
         public ActionResult<ModelReadDto> Post([FromForm] ModelCreateDto createDto)
         {
             ModelReadDto model = _modelService.CreateNewModel(createDto);
