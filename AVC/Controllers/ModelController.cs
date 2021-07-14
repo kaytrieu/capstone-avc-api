@@ -58,7 +58,7 @@ namespace AVC.Controllers
 
 
         [HttpPut("{id}/applying")]
-        public ActionResult SetModelSuccess(int id)
+        public ActionResult ApplyModel(int id)
         {
             _modelService.ApplyModel(id);
 

@@ -147,6 +147,7 @@ namespace AVC.Services.Implements
                     assign.IsAvailable = false;
                     assign.RemoveAt = DateTime.UtcNow.AddHours(7);
                 }
+
             }
 
             car.ManagedBy = dto.ManagerId;
