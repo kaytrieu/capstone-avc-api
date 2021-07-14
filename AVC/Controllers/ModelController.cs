@@ -46,8 +46,25 @@ namespace AVC.Controllers
 
             return Ok(respone);
 
-        }
+        }        
         
+        [HttpGet("applying")]
+        public ActionResult<ModelReadDto> GetApplyingModel()
+        {
+            var respone = _modelService.GetApplyingModel();
+
+            return Ok(respone);
+        }
+
+
+        [HttpPut("{id}/applying")]
+        public ActionResult SetModelSuccess(int id)
+        {
+            _modelService.ApplyModel(id);
+
+            return Ok();
+        }
+
         [HttpPut("{id}/succession")]
         public ActionResult SetModelSuccess(int id)
         {

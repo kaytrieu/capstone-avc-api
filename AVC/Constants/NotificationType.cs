@@ -14,21 +14,26 @@ namespace AVC.Constant
         public const string TrainFailed = "TrainFailed";
         public const string TrainSuccess = "TrainSuccess";
         public const string Trainning = "Trainning";
-        public const string DeactivedAccount = "Deactivated";
-        public const string DeactivedCar = "Deactivated";
+        public const string DeactivedAccount = "DeactivatedAccount";
+        public const string DeactivedCar = "DeactivatedCar";
 
 
 
-        public static string IssueMessage(string name, string type) => "Car " + name + " has new issue " + type + ".";
-        public static string AssignCarMessage(string name) => "Car " + name + " assigned to you."; // To Staff
-        public static string StaffManagedByManagerMessage(string name) => "Staff " + name + " assigned to you.";
-        public static string StaffManagedByStaffMessage(string name) => "From now on, you will be managed by " + name + ".";
-        public static string CarManagedByMessage(string name) => "Car " + name + " assigned to you.";
+        public static string IssueMessage(string name, string type) => "The car " + name + " has just got an " + type + " issue, please check for details.";
+        public static string AssignCarOldStaffMessage(string name) => "A car " + name + " has been removed from you, please check for detail.";// To Staff
+        public static string AssignCarNewStaffMessage(string name) => "You have just been assigned a car from your manager, please check for details"; // To Staff
+        public static string StaffManagedByStaffMessage(string name) => "You have been assigned to manager " + name + ".";
+        public static string StaffManagedByNewManagerMessage(string name) => "Staff " + name + " has been assigned to you, please check for detail.";
+        public static string StaffManagedByOldManagerMessage(string name) => "Staff " + name + " has been removed from, you, please check for detail.";
+        public static string CarManagedByNewManagerMessage(string name) => "A car " + name + " has been assigned to you, please check for detail.";
+        public static string CarManagedByOldManagerMessage(string name) => "A car " + name + " has been removed from you, please check for detail.";
         public static string TrainFailedMessage(string name) => "Model " + name + " train failed.";
         public static string TrainSuccessMessage(string name) => "Model " + name + " train successed.";
         public static string TrainningMessage(string name) => "Model " + name + " is training.";
-        public static string DeactivedAccountMessage(string name) => "Staff " + name + " deactivated.";
-        public static string DeactivedCarMessage(string name) => "Car " + name + " deactivated";
+        public static string DeactivedAccountStaffMessage(string name) => "Staff " + name + " has been deactivated and removed from your management list.";
+        public static string DeactivedAccountManagerMessage(string name) => "Manager " + name + " has been deactivated, any car assigned to you by that account will be removed.";
+        public static string DeactivedCarStaffMessage(string name) => "Car " + name + " has been deactivated and removed from your assigned list";
+        public static string DeactivedCarManagerMessage(string name) => "Car " + name + " has been deactivated and removed from your management list";
 
 
     }

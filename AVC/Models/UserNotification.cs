@@ -9,6 +9,17 @@ namespace AVC.Models
 {
     public partial class UserNotification
     {
+        public UserNotification(int? receiverId, string message, string type)
+        {
+            ReceiverId = receiverId;
+            Message = message;
+            Type = type;
+        }
+
+        public UserNotification()
+        {
+        }
+
         public int Id { get; set; }
         public int? ReceiverId { get; set; }
         public string Message { get; set; }

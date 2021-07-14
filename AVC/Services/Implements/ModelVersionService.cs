@@ -11,6 +11,7 @@ using LibGit2Sharp;
 using LibGit2Sharp.Handlers;
 using AVC.Models;
 using AVC.Constant;
+using AVC.Extensions;
 using System.Transactions;
 using AVC.Constants;
 using System.Collections.Generic;
@@ -82,7 +83,19 @@ namespace AVC.Services.Implements
 
             if (modelFromRepo == null)
             {
-                throw new NotFoundException("Model not found");
+                throw new Extensions.NotFoundException("Model not found");
+            }
+
+            return _mapper.Map<ModelReadDto>(modelFromRepo);
+        }
+
+        public ModelReadDto GetApplyingModel()
+        {
+            var modelFromRepo = _unit.ModelVersionRepository.Get(x => x.IsApplying == true, x => x.ModelStatus);
+
+            if (modelFromRepo == null)
+            {
+                throw new Extensions.NotFoundException("Model not found");
             }
 
             return _mapper.Map<ModelReadDto>(modelFromRepo);
@@ -94,9 +107,31 @@ namespace AVC.Services.Implements
 
             if (modelFromRepo == null)
             {
-                throw new NotFoundException("Model not found");
+                throw new Extensions.NotFoundException("Model not found");
             }
             _mapper.Map(modelUpdateDto, modelFromRepo);
+
+            _unit.SaveChanges();
+        }
+
+        public void ApplyModel(int modelId)
+        {
+            var modelFromRepo = _unit.ModelVersionRepository.Get(x => x.Id == modelId);
+
+            if (modelFromRepo == null)
+            {
+                throw new Extensions.NotFoundException("Model not found");
+            }
+
+            if (modelFromRepo.ModelStatusId != ModelState.SuccessedId)
+            {
+                throw new PermissionDeniedException("Only apply success model");
+            }
+
+            var applyingModel = _unit.ModelVersionRepository.Get(x => x.IsApplying == true);
+
+            applyingModel.IsApplying = false;
+            modelFromRepo.IsApplying = true;
 
             _unit.SaveChanges();
         }
@@ -107,7 +142,7 @@ namespace AVC.Services.Implements
 
             if (model == null)
             {
-                throw new NotFoundException("Model not found");
+                throw new Extensions.NotFoundException("Model not found");
             }
 
             model.ModelStatusId = ModelState.SuccessedId;
@@ -123,7 +158,7 @@ namespace AVC.Services.Implements
 
             if (model == null)
             {
-                throw new NotFoundException("Model not found");
+                throw new Extensions.NotFoundException("Model not found");
             }
 
             model.ModelStatusId = ModelState.TrainningId;
@@ -139,7 +174,7 @@ namespace AVC.Services.Implements
 
             if (model == null)
             {
-                throw new NotFoundException("Model not found");
+                throw new Extensions.NotFoundException("Model not found");
             }
 
             model.ModelStatusId = ModelState.FailedId;
@@ -273,7 +308,7 @@ namespace AVC.Services.Implements
                             repo.Branches.Remove(localBranch);
                         }
                     }
-                    catch(Exception e)
+                    catch (Exception e)
                     {
                         Commands.Checkout(repo, defaultBracnch);
 

@@ -10,7 +10,9 @@ namespace AVC.Services.Interfaces
 {
     public interface IModelVersionService
     {
+        void ApplyModel(int modelId);
         ModelReadDto CreateNewModel(ModelCreateDto createDto);
+        ModelReadDto GetApplyingModel();
         ModelReadDto GetModelDetail(int modelId);
         PagingResponseDto<ModelReadDto> GetModelList(ModelQueryFilter filter);
         void ModelTrainFailed(int modelId, string failedMessage);
