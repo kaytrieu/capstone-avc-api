@@ -19,6 +19,7 @@ using AVC.Dtos.QueryFilter;
 using AVC.Dtos.PagingDtos;
 using System.Linq;
 using System.Threading.Tasks;
+using AVC.Extensions.Extensions;
 
 namespace AVC.Services.Implements
 {
@@ -39,8 +40,10 @@ namespace AVC.Services.Implements
             var page = filter.Page;
             var limit = filter.Limit;
             var searchValue = filter.SearchValue;
+            searchValue = searchValue.IsNullOrEmpty() ? "" : searchValue.Trim();
 
-            var dto = _unit.ModelVersionRepository.GetAllWithOrderedDecs(page, limit, x => x.IsAvailable == true, x => x.CreatedAt, x => x.ModelStatus);
+
+            var dto = _unit.ModelVersionRepository.GetAllWithOrderedDecs(page, limit, x => x.IsAvailable == true && x.Name.Contains(searchValue), x => x.CreatedAt, x => x.ModelStatus);
 
             if (filter.SuccessList)
             {
