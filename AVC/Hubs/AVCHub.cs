@@ -1,10 +1,10 @@
-﻿using AVC.Dtos.HubMessages;
+﻿using AVC.Constant;
+using AVC.Dtos.HubMessages;
 using AVC.Services.Interfaces;
 using Microsoft.AspNetCore.SignalR;
 using Serilog;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace AVC.Hubs
@@ -12,31 +12,29 @@ namespace AVC.Hubs
     public class AVCHub : Hub
     {
         private readonly ICarService _carService;
-        private readonly string accountGroup = "Account";
-        private readonly string carGroup = "Car";
-        private static Dictionary<string, int> CarDic;
+
 
 
         public AVCHub(ICarService carService)
         {
             _carService = carService;
-            if (CarDic == null)
+            if (HubConstant.carDic == null)
             {
-                CarDic = new Dictionary<string, int>();
+                HubConstant.carDic = new Dictionary<string, int>();
             }
         }
 
         public async Task ConnectCar(string deviceId)
         {
-            await Groups.AddToGroupAsync(Context.ConnectionId, carGroup);
+            await Groups.AddToGroupAsync(Context.ConnectionId, HubConstant.carGroup);
             Log.Information(deviceId + " is connected with ClientID: " + Context.ConnectionId);
 
             var message = _carService.HandleCarConnected(deviceId);
 
             if (message.carConnectedMessage != null)
             {
-                if (!CarDic.ContainsKey(Context.ConnectionId))
-                    CarDic.Add(Context.ConnectionId, message.carConnectedMessage.CarId);
+                if (!HubConstant.carDic.ContainsKey(Context.ConnectionId))
+                    HubConstant.carDic.Add(Context.ConnectionId, message.carConnectedMessage.CarId);
                 await SendCarConnectedToStaff(message.carConnectedMessage);
             }
 
@@ -46,7 +44,7 @@ namespace AVC.Hubs
 
         public async Task SendCarConnectedToStaff(CarConnectedMessage message)
         {
-            await Clients.Group(accountGroup).SendAsync("WhenCarConnected", message);
+            await Clients.Group(HubConstant.accountGroup).SendAsync("WhenCarConnected", message);
         }
 
         public async Task StartCar(int carId)
@@ -70,7 +68,7 @@ namespace AVC.Hubs
                     throw new HubException("Car is not connected");
                 }
 
-                await Clients.Group(carGroup).SendAsync("WhenCarStart", deviceId);
+                await Clients.Group(HubConstant.carGroup).SendAsync("WhenCarStart", deviceId);
             }
             else
             {
@@ -89,7 +87,7 @@ namespace AVC.Hubs
 
             if (message != null)
             {
-                await Clients.Group(accountGroup).SendAsync("WhenCarRunning", message);
+                await Clients.Group(HubConstant.accountGroup).SendAsync("WhenCarRunning", message);
             }
             else
             {
@@ -108,7 +106,7 @@ namespace AVC.Hubs
                 {
                     string deviceId = car.DeviceId;
 
-                    await Clients.Group(carGroup).SendAsync("WhenCarStop", deviceId);
+                    await Clients.Group(HubConstant.carGroup).SendAsync("WhenCarStop", deviceId);
 
                 }
                 else if (car.IsConnecting)
@@ -136,7 +134,7 @@ namespace AVC.Hubs
 
             if (message != null)
             {
-                await Clients.Group(accountGroup).SendAsync("WhenCarStopping", message);
+                await Clients.Group(HubConstant.accountGroup).SendAsync("WhenCarStopping", message);
             }
             else
             {
@@ -146,7 +144,7 @@ namespace AVC.Hubs
 
         public async Task ConnectAccount(int accountId)
         {
-            await Groups.AddToGroupAsync(Context.ConnectionId, accountGroup);
+            await Groups.AddToGroupAsync(Context.ConnectionId, HubConstant.accountGroup);
             Log.Information(accountId + " is connected with ClientID: " + Context.ConnectionId);
         }
 
@@ -154,10 +152,10 @@ namespace AVC.Hubs
         {
             Log.Information(Context.ConnectionId + " is disconnected");
 
-            if (CarDic.ContainsKey(Context.ConnectionId))
+            if (HubConstant.carDic.ContainsKey(Context.ConnectionId))
             {
-                var message = _carService.HandleWhenCarDisconnected(CarDic[Context.ConnectionId]);
-                Clients.Group(accountGroup).SendAsync("WhenCarDisconnected", message);
+                var message = _carService.HandleWhenCarDisconnected(HubConstant.carDic[Context.ConnectionId]);
+                Clients.Group(HubConstant.accountGroup).SendAsync("WhenCarDisconnected", message);
             }
 
             return base.OnDisconnectedAsync(exception);

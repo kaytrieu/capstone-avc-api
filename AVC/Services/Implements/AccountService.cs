@@ -1,16 +1,19 @@
 ﻿using AutoMapper;
 using AVC.Constant;
 using AVC.Dtos.AccountDtos;
+using AVC.Dtos.HubMessages;
 using AVC.Dtos.PagingDtos;
 using AVC.Dtos.QueryFilter;
 using AVC.Extensions;
 using AVC.Extensions.Extensions;
+using AVC.Hubs;
 using AVC.Models;
 using AVC.Repositories.Interface;
 using AVC.Service;
 using AVC.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Morcatko.AspNetCore.JsonMergePatch;
@@ -23,7 +26,7 @@ namespace AVC.Services.Implements
 {
     public class AccountService : BaseService, IAccountService
     {
-        public AccountService(IUnitOfWork unit, IMapper mapper, IConfiguration config, IUrlHelper urlHelper, IHttpContextAccessor httpContextAccessor) : base(unit, mapper, config, urlHelper, httpContextAccessor)
+        public AccountService(IUnitOfWork unit, IMapper mapper, IConfiguration config, IUrlHelper urlHelper, IHttpContextAccessor httpContextAccessor, IHubContext<AVCHub> hubContext) : base(unit, mapper, config, urlHelper, httpContextAccessor, hubContext)
         {
         }
 
@@ -284,11 +287,22 @@ namespace AVC.Services.Implements
                         var members = account.InverseManagedByNavigation;
                         if (members.Count != 0)
                         {
+                            var listStaffId = new List<int>();
+
                             //set staff managed by nobody
                             foreach (var item in members)
                             {
                                 item.ManagedBy = null;
+                                listStaffId.Add(item.Id);
                             }
+
+                            if (listStaffId.Count() > 0)
+                            {
+                                WhenManagerDeactivatedMessage message = new WhenManagerDeactivatedMessage(listStaffId, account.Id,
+                                    NotificationType.DeactivatedAccountStaffMessage(account.FirstName + " " + account.LastName));
+                                WhenManagerDeactivated(message);
+                            }
+
                             //disable assign car for all staff managed by this manager
                             //set Car's managed by nobody
                             foreach (var item in account.Car)
@@ -304,7 +318,15 @@ namespace AVC.Services.Implements
                     }
                     else
                     {
-                        //account.ManagedBy = null;
+                        if (account.ManagedBy != null)
+                        {
+                            WhenStaffDeactivatedMessage message =
+                                new WhenStaffDeactivatedMessage((int)account.ManagedBy, account.Id,
+                                NotificationType.DeactivatedAccountManagerMessage(account.FirstName + " " + account.LastName));
+
+                            account.ManagedBy = null;
+                        }
+
                         //disable control car permission by this staff
                         var assignedList = account.AssignedCarAccount.Where(x => x.IsAvailable == true);
 
@@ -314,6 +336,9 @@ namespace AVC.Services.Implements
                             assign.RemoveAt = DateTime.UtcNow.AddHours(7);
                         }
                     }
+
+                    WhenThisAccountDeactivated(account.Id);
+
                 }
 
                 //Mapper to Update new password and salt
@@ -325,6 +350,29 @@ namespace AVC.Services.Implements
             }
         }
 
+        private async void WhenStaffDeactivated(WhenStaffDeactivatedMessage message)
+        {
+            AddNewNotification(message.ReceiverId, message.Message, NotificationType.DeactivatedAccount);
+
+            await _hubContext.Clients.Group(HubConstant.accountGroup).SendAsync("WhenAccountDeactivated", message);
+        }
+
+        private async void WhenManagerDeactivated(WhenManagerDeactivatedMessage message)
+        {
+            foreach (var receiverId in message.ReceiverIdList)
+            {
+                AddNewNotification(receiverId, message.Message, NotificationType.DeactivatedAccount);
+            }
+
+            await _hubContext.Clients.Group(HubConstant.accountGroup).SendAsync("WhenAccountDeactivated", message);
+        }
+
+        private async void WhenThisAccountDeactivated(int receiverId)
+        {
+            await _hubContext.Clients.Group(HubConstant.accountGroup).SendAsync("WhenThisAccountDeactivated", receiverId);
+        }
+
+
         public void SetManagedBy(AccountManagedByUpdateDto dto)
         {
             var account = _unit.AccountRepository.Get(x => x.Id == dto.StaffId, x => x.AssignedCarAccount);
@@ -334,20 +382,67 @@ namespace AVC.Services.Implements
                 throw new NotFoundException("Account not found");
             }
 
-            if (account.ManagedBy != null && account.ManagedBy != dto.ManagerId)
-            {
-                var assignedList = account.AssignedCarAccount.Where(x => x.IsAvailable == true);
+            var manager = _unit.AccountRepository.Get(x => x.Id == dto.ManagerId);
 
-                foreach (var assign in assignedList)
+            if (manager == null)
+            {
+                throw new NotFoundException("Manager not found");
+            }
+
+            if (account.ManagedBy != dto.ManagerId)
+            {
+                if (account.ManagedBy != null)
                 {
-                    assign.IsAvailable = false;
-                    assign.RemoveAt = DateTime.UtcNow.AddHours(7);
+                    WhenAdminChangeStaffManagedByMessage oldManagerMessageDto = new WhenAdminChangeStaffManagedByMessage
+                    {
+                        ReceiverId = (int)account.ManagedBy,
+                        StaffId = dto.StaffId,
+                        Message = NotificationType.StaffManagedByOldManagerMessage(account.FirstName + " " + account.LastName)
+                    };
+
+                    WhenAdminChangeStaffManagedBy(oldManagerMessageDto);
+
+                    var assignedList = account.AssignedCarAccount.Where(x => x.IsAvailable == true);
+
+                    foreach (var assign in assignedList)
+                    {
+                        assign.IsAvailable = false;
+                        assign.RemoveAt = DateTime.UtcNow.AddHours(7);
+                    }
                 }
+
+                if (dto.ManagerId != null)
+                {
+                    WhenAdminChangeStaffManagedByMessage newManagerMessageDto = new WhenAdminChangeStaffManagedByMessage
+                    {
+                        ReceiverId = (int)dto.ManagerId,
+                        StaffId = dto.StaffId,
+                        Message = NotificationType.StaffManagedByNewManagerMessage(account.FirstName + " " + account.LastName)
+                    };
+
+                    WhenAdminChangeStaffManagedBy(newManagerMessageDto);
+                }
+
+                WhenAdminChangeStaffManagedByMessage staffMessage = new WhenAdminChangeStaffManagedByMessage
+                {
+                    ReceiverId = account.Id,
+                    StaffId = dto.StaffId,
+                    Message = NotificationType.StaffManagedByStaffMessage(account.FirstName + " " + account.LastName)
+                };
+
+                WhenAdminChangeStaffManagedBy(staffMessage);
             }
 
             account.ManagedBy = dto.ManagerId;
             _unit.AccountRepository.Update(account);
             _unit.SaveChanges();
+        }
+
+        private async void WhenAdminChangeStaffManagedBy(WhenAdminChangeStaffManagedByMessage message)
+        {
+            AddNewNotification(message.ReceiverId, message.Message, NotificationType.StaffManagedBy);
+
+            await _hubContext.Clients.Group(HubConstant.accountGroup).SendAsync("WhenAdminChangeStaffManagedBy", message);
         }
 
         public void Patch(int id, JsonMergePatchDocument<AccountUpdateDto> dto)

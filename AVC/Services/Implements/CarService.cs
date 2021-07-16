@@ -6,12 +6,14 @@ using AVC.Dtos.PagingDtos;
 using AVC.Dtos.QueryFilter;
 using AVC.Extensions;
 using AVC.Extensions.Extensions;
+using AVC.Hubs;
 using AVC.Models;
 using AVC.Repositories.Interface;
 using AVC.Service;
 using AVC.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Morcatko.AspNetCore.JsonMergePatch;
@@ -28,7 +30,9 @@ namespace AVC.Services.Implements
 {
     public class CarService : BaseService, ICarService
     {
-        public CarService(IUnitOfWork unit, IMapper mapper, IConfiguration config, IUrlHelper urlHelper, IHttpContextAccessor httpContextAccessor) : base(unit, mapper, config, urlHelper, httpContextAccessor)
+        public CarService(IUnitOfWork unit, IMapper mapper, IConfiguration config,
+            IUrlHelper urlHelper, IHttpContextAccessor httpContextAccessor, IHubContext<AVCHub> hubContext)
+            : base(unit, mapper, config, urlHelper, httpContextAccessor, hubContext)
         {
         }
 
@@ -138,21 +142,48 @@ namespace AVC.Services.Implements
                 throw new NotFoundException("Car not found");
             }
 
-            if (car.ManagedBy != null && car.ManagedBy != dto.ManagerId)
+            if (car.ManagedBy != dto.ManagerId)
             {
-                var assignedList = car.AssignedCar.Where(x => x.IsAvailable == true);
-
-                foreach (var assign in assignedList)
+                if (car.ManagedBy != null)
                 {
-                    assign.IsAvailable = false;
-                    assign.RemoveAt = DateTime.UtcNow.AddHours(7);
+                    WhenAdminChangeCarManagedByMessage oldManagerMessageDto = new WhenAdminChangeCarManagedByMessage
+                    {
+                        ReceiverId = (int)car.ManagedBy,
+                        CarId = dto.CarId,
+                        Message = NotificationType.CarManagedByOldManagerMessage(car.Name)
+                    };
+
+                    WhenAdminChangeCarManagedBy(oldManagerMessageDto);
+
+                    var assignedList = car.AssignedCar.Where(x => x.IsAvailable == true);
+
+                    foreach (var assign in assignedList)
+                    {
+                        assign.IsAvailable = false;
+                        assign.RemoveAt = DateTime.UtcNow.AddHours(7);
+                    }
                 }
 
+                WhenAdminChangeCarManagedByMessage newManagerMessageDto = new WhenAdminChangeCarManagedByMessage
+                {
+                    ReceiverId = (int)dto.ManagerId,
+                    CarId = dto.CarId,
+                    Message = NotificationType.CarManagedByNewManagerMessage(car.Name)
+                };
+
+                WhenAdminChangeCarManagedBy(newManagerMessageDto);
             }
 
             car.ManagedBy = dto.ManagerId;
             _unit.CarRepository.Update(car);
             _unit.SaveChanges();
+        }
+
+        private async void WhenAdminChangeCarManagedBy(WhenAdminChangeCarManagedByMessage message)
+        {
+            AddNewNotification(message.ReceiverId, message.Message, NotificationType.CarManagedBy);
+
+            await _hubContext.Clients.Group(HubConstant.accountGroup).SendAsync("WhenAdminChangeCarManagedBy", message);
         }
 
         public void SetActivation(int id, CarActivationDto dto)
@@ -168,20 +199,52 @@ namespace AVC.Services.Implements
             {
                 if (!dto.IsAvailable)
                 {
+                    var receiverIdList = new List<int>();
+
+                    if (car.ManagedBy != null)
+                    {
+                        receiverIdList.Add((int)car.ManagedBy);
+                    }
+
                     var assignedList = car.AssignedCar.Where(x => x.IsAvailable == true);
 
                     foreach (var assign in assignedList)
                     {
+                        receiverIdList.Add(assign.AccountId);
                         assign.IsAvailable = false;
                         assign.RemoveAt = DateTime.UtcNow.AddHours(7);
+                    }
+
+                    if (receiverIdList.Count() > 0)
+                    {
+                        var message = new WhenCarDeactivatedMessage(receiverIdList, car.Id, NotificationType.DeactivatedCarMessage(car.Name));
+                        WhenCarDeactivated(message);
                     }
                 }
 
                 car.IsAvailable = dto.IsAvailable;
                 _unit.CarRepository.Update(car);
                 _unit.SaveChanges();
+
+                WhenCarDeactivated(car.Id);
             }
         }
+        private async void WhenCarDeactivated(WhenCarDeactivatedMessage message)
+        {
+            foreach (var receiverId in message.ReceiverIdList)
+            {
+                AddNewNotification(receiverId, message.Message, NotificationType.DeactivatedCar);
+            }
+
+            await _hubContext.Clients.Group(HubConstant.accountGroup).SendAsync("WhenCarDeactivated", message);
+        }
+
+        private async void WhenCarDeactivated(int receiverId)
+        {
+            await _hubContext.Clients.Group(HubConstant.carGroup).SendAsync("WhenCarDeactivated", receiverId);
+        }
+
+
 
         public DefaultCarConfigDto GetDefaultCarConfig()
         {
@@ -302,7 +365,11 @@ namespace AVC.Services.Implements
                 }
                 asCarFromRepo.IsAvailable = false;
                 asCarFromRepo.RemoveAt = DateTime.UtcNow.AddHours(7);
+
+                var oldStaffMessage = new WhenManagerChangeAssignedCarMessage(asCarFromRepo.AccountId, carId, NotificationType.AssignCarOldStaffMessage(carFromRepo.Name));
+                WhenManagerChangeAssignedCar(oldStaffMessage);
             }
+
 
             if (staffId != null)
             {
@@ -320,6 +387,10 @@ namespace AVC.Services.Implements
                 AssignedCar asCar = new AssignedCar { AccountId = (int)staffId, CarId = carId, AssignedBy = actorId };
 
                 _unit.AssignedCarRepository.Add(asCar);
+
+                var newStaffMessage = new WhenManagerChangeAssignedCarMessage((int)staffId, carId, NotificationType.AssignCarNewStaffMessage(carFromRepo.Name));
+
+                WhenManagerChangeAssignedCar(newStaffMessage);
             }
 
             _unit.SaveChanges();
@@ -329,6 +400,14 @@ namespace AVC.Services.Implements
 
             //return asCarDto;
         }
+
+        private async void WhenManagerChangeAssignedCar(WhenManagerChangeAssignedCarMessage message)
+        {
+            AddNewNotification(message.ReceiverId, message.Message, NotificationType.AssignCar);
+
+            await _hubContext.Clients.Group(HubConstant.accountGroup).SendAsync("WhenManagerChangeAssignedCar", message);
+        }
+
 
         public void CreateNewCarByDevice(string deviceId)
         {

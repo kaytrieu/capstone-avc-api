@@ -20,6 +20,9 @@ using AVC.Dtos.PagingDtos;
 using System.Linq;
 using System.Threading.Tasks;
 using AVC.Extensions.Extensions;
+using Microsoft.AspNetCore.SignalR;
+using AVC.Hubs;
+using AVC.Dtos.HubMessages;
 
 namespace AVC.Services.Implements
 {
@@ -29,8 +32,8 @@ namespace AVC.Services.Implements
 
 
         public ModelVersionService(IUnitOfWork unit, IMapper mapper, IConfiguration config, TrainModelConfig trainModelConfig,
-                                   IUrlHelper urlHelper, IHttpContextAccessor httpContextAccessor)
-                                        : base(unit, mapper, config, urlHelper, httpContextAccessor)
+                                   IUrlHelper urlHelper, IHttpContextAccessor httpContextAccessor, IHubContext<AVCHub> hubContext)
+                                        : base(unit, mapper, config, urlHelper, httpContextAccessor, hubContext)
         {
             _trainModelConfig = trainModelConfig;
         }
@@ -152,6 +155,8 @@ namespace AVC.Services.Implements
             model.ModelStatusId = ModelState.SucceededId;
 
             //TODO: create notification, send signalR
+            var message = new WhenModelStatusChangedMessage(Roles.AdminId, model.Id, NotificationType.TrainSuccessMessage(model.Name));
+            WhenModelStatusChanged(message, NotificationType.TrainSuccess);
 
             _unit.SaveChanges();
         }
@@ -168,6 +173,8 @@ namespace AVC.Services.Implements
             model.ModelStatusId = ModelState.TrainningId;
 
             //TODO: create notification, send signalR
+            var message = new WhenModelStatusChangedMessage(Roles.AdminId, model.Id, NotificationType.TrainningMessage(model.Name));
+            WhenModelStatusChanged(message, NotificationType.TrainSuccess);
 
             _unit.SaveChanges();
         }
@@ -184,9 +191,19 @@ namespace AVC.Services.Implements
             model.ModelStatusId = ModelState.FailedId;
 
             //TODO: create notification, send signalR
+            var message = new WhenModelStatusChangedMessage(Roles.AdminId, model.Id, NotificationType.TrainFailedMessage(model.Name, failedMessage));
+            WhenModelStatusChanged(message, NotificationType.TrainSuccess);
 
             _unit.SaveChanges();
         }
+
+        private async void WhenModelStatusChanged(WhenModelStatusChangedMessage message, string type)
+        {
+            AddNewNotification(message.ReceiverId, message.Message, type);
+
+            await _hubContext.Clients.Group(HubConstant.accountGroup).SendAsync("WhenModelStatusChanged", message);
+        }
+
 
         public ModelReadDto CreateNewModel(ModelCreateDto createDto)
         {

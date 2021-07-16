@@ -1,16 +1,19 @@
 ﻿using AutoMapper;
 using AVC.Constant;
+using AVC.Dtos.HubMessages;
 using AVC.Dtos.IssueDtos;
 using AVC.Dtos.PagingDtos;
 using AVC.Dtos.QueryFilter;
 using AVC.Extensions;
 using AVC.Extensions.Extensions;
+using AVC.Hubs;
 using AVC.Models;
 using AVC.Repositories.Interface;
 using AVC.Service;
 using AVC.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Morcatko.AspNetCore.JsonMergePatch;
@@ -24,7 +27,9 @@ namespace AVC.Services.Implements
 {
     public class IssueService : BaseService, IIssueService
     {
-        public IssueService(IUnitOfWork unit, IMapper mapper, IConfiguration config, IUrlHelper urlHelper, IHttpContextAccessor httpContextAccessor) : base(unit, mapper, config, urlHelper, httpContextAccessor)
+        public IssueService(IUnitOfWork unit, IMapper mapper, IConfiguration config,
+            IUrlHelper urlHelper, IHttpContextAccessor httpContextAccessor, IHubContext<AVCHub> hubContext)
+            : base(unit, mapper, config, urlHelper, httpContextAccessor, hubContext)
         {
         }
 
@@ -47,12 +52,39 @@ namespace AVC.Services.Implements
 
             _unit.SaveChanges();
 
-            issueModel = _unit.IssueRepository.Get(x => x.Id == issueModel.Id, x => x.Car, x => x.Type);
+            issueModel = _unit.IssueRepository.Get(x => x.Id == issueModel.Id, x => x.Include(x => x.Car).ThenInclude(x => x.AssignedCar).Include(x => x.Type));
+
+            var receiverIdList = new List<int>();
+            if (issueModel.Car.ManagedBy != null)
+            {
+                receiverIdList.Add((int)issueModel.Car.ManagedBy);
+
+                foreach (var item in issueModel.Car.AssignedCar.Where(x => (bool)x.IsAvailable))
+                {
+                    receiverIdList.Add(item.AccountId);
+                }
+
+                var message = new WhenIssueCreatedMessage(receiverIdList, issueModel.CarId, 
+                    NotificationType.IssueMessage(issueModel.Car.Name, issueModel.Type.Name));
+
+                WhenIssueCreated(message);
+            }
 
             IssueReadDto issueReadDto = _mapper.Map<IssueReadDto>(issueModel);
 
             return issueReadDto;
         }
+
+        private async void WhenIssueCreated(WhenIssueCreatedMessage message)
+        {
+            foreach (var receiverId in message.ReceiverIdList)
+            {
+                AddNewNotification(receiverId, message.Message, NotificationType.Issue);
+            }
+
+            await _hubContext.Clients.Group(HubConstant.accountGroup).SendAsync("WhenIssueCreated", message);
+        }
+
 
         public IssueReadDto GetIssueDetail(int id)
         {
