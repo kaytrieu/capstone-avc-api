@@ -104,6 +104,7 @@ namespace AVC
             services.AddScoped<IIssueService, IssueService>();
             services.AddScoped<IModelVersionService, ModelVersionService>();
             services.AddScoped<IRoleService, RoleService>();
+            services.AddScoped<IUserNotificationService, UserNotificationService>();
 
             //repository
             services.AddScoped<IAccountRepository, AccountRepository>();
@@ -113,6 +114,7 @@ namespace AVC
             services.AddScoped<IIssueRepository, IssueRepository>();
             services.AddScoped<IModelVersionRepository, ModelVersionRepository>();
             services.AddScoped<IIssueTypeRepository, IssueTypeRepository>();
+            services.AddScoped<IUserNotificationRepository, UserNotificationRepository>();
             services.AddScoped<IDefaultConfigurationRepository, DefaultConfigurationRepository>();
 
             //unit of work

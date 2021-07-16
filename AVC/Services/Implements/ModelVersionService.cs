@@ -47,7 +47,7 @@ namespace AVC.Services.Implements
 
             if (filter.SuccessList)
             {
-                dto.Result = dto.Result.Where(x => x.ModelStatusId == ModelState.SuccessedId);
+                dto.Result = dto.Result.Where(x => x.ModelStatusId == ModelState.SucceededId);
             }
             else if (filter.QueuedList)
             {
@@ -126,9 +126,9 @@ namespace AVC.Services.Implements
                 throw new Extensions.NotFoundException("Model not found");
             }
 
-            if (modelFromRepo.ModelStatusId != ModelState.SuccessedId)
+            if (modelFromRepo.ModelStatusId != ModelState.SucceededId)
             {
-                throw new PermissionDeniedException("Only apply success model");
+                throw new Extensions.NotFoundException("Only apply success model");
             }
 
             var applyingModel = _unit.ModelVersionRepository.Get(x => x.IsApplying == true);
@@ -149,7 +149,7 @@ namespace AVC.Services.Implements
                 throw new Extensions.NotFoundException("Model not found");
             }
 
-            model.ModelStatusId = ModelState.SuccessedId;
+            model.ModelStatusId = ModelState.SucceededId;
 
             //TODO: create notification, send signalR
 

@@ -47,7 +47,7 @@ namespace AVC.Services.Implements
 
             _unit.SaveChanges();
 
-            issueModel = _unit.IssueRepository.Get(x => x.Id == issueModel.Id, x => x.Car, x=> x.Type);
+            issueModel = _unit.IssueRepository.Get(x => x.Id == issueModel.Id, x => x.Car, x => x.Type);
 
             IssueReadDto issueReadDto = _mapper.Map<IssueReadDto>(issueModel);
 
@@ -125,17 +125,17 @@ namespace AVC.Services.Implements
 
             var issues = _mapper.Map<IEnumerable<IssueReadDto>>(dto.Result);
 
-            var response = new PagingResponseDto<IssueReadDto> (issues, page, limit);
+            var response = new PagingResponseDto<IssueReadDto>(issues, page, limit);
 
             if (limit > 0)
             {
                 if ((double)dto.Count / limit > page)
                 {
-                    response.NextPage = _urlHelper.Link(null, new { page = page + 1, limit, searchValue });
+                    response.NextPage = _urlHelper.Link(null, new { page = page + 1, limit, searchValue, filter.CarId, filter.TypeId });
                 }
 
                 if (page > 1)
-                    response.PreviousPage = _urlHelper.Link(null, new { page = page - 1, limit, searchValue });
+                    response.PreviousPage = _urlHelper.Link(null, new { page = page - 1, limit, searchValue, filter.CarId, filter.TypeId });
             }
             return response;
         }
@@ -170,7 +170,7 @@ namespace AVC.Services.Implements
 
         private string UploadImage(IFormFile image, int id)
         {
-             return FirebaseService.UploadFileToFirebaseStorage(image, ("Issue" + id).GetHashString(), "IssueImage", _config).Result;
+            return FirebaseService.UploadFileToFirebaseStorage(image, ("Issue" + id).GetHashString(), "IssueImage", _config).Result;
         }
     }
 }

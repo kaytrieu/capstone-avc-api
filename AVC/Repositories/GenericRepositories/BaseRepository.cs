@@ -28,6 +28,7 @@ namespace AVC.GenericRepository
             _dbSet.Add(t);
         }
 
+       
         public void Delete(T t)
         {
             if (t != null)
@@ -86,6 +87,11 @@ namespace AVC.GenericRepository
         public void Update(T items)
         {
             //Default is nothing
+        }
+
+        public int Count()
+        {
+            return _dbSet.Count();
         }
 
         public IQueryable<T> GetAll(params Expression<Func<T, object>>[] including)

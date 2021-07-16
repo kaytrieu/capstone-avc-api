@@ -28,7 +28,7 @@ namespace AVC.Constant
         public static string CarManagedByNewManagerMessage(string name) => "A car " + name + " has been assigned to you, please check for detail.";
         public static string CarManagedByOldManagerMessage(string name) => "A car " + name + " has been removed from you, please check for detail.";
         public static string TrainFailedMessage(string name) => "Model " + name + " train failed.";
-        public static string TrainSuccessMessage(string name) => "Model " + name + " train successed.";
+        public static string TrainSuccessMessage(string name) => "Model " + name + " train succeeded.";
         public static string TrainningMessage(string name) => "Model " + name + " is training.";
         public static string DeactivedAccountStaffMessage(string name) => "Staff " + name + " has been deactivated and removed from your management list.";
         public static string DeactivedAccountManagerMessage(string name) => "Manager " + name + " has been deactivated, any car assigned to you by that account will be removed.";

@@ -107,11 +107,11 @@ namespace AVC.Services.Implements
             {
                 if ((double)dto.Count / limit > page)
                 {
-                    response.NextPage = _urlHelper.Link(null, new { page = page + 1, limit, searchValue });
+                    response.NextPage = _urlHelper.Link(null, new { page = page + 1, limit, searchValue, isAvailable });
                 }
 
                 if (page > 1)
-                    response.PreviousPage = _urlHelper.Link(null, new { page = page - 1, limit, searchValue });
+                    response.PreviousPage = _urlHelper.Link(null, new { page = page - 1, limit, searchValue, isAvailable });
             }
 
             return response;

@@ -30,6 +30,6 @@ namespace AVC.GenericRepository
         void Update(T items);
         int SaveChanges();
         Task<int> SaveChangesAsync();
-
+        int Count();
     }
 }
