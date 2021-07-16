@@ -133,7 +133,8 @@ namespace AVC.Services.Implements
 
             var applyingModel = _unit.ModelVersionRepository.Get(x => x.IsApplying == true);
 
-            applyingModel.IsApplying = false;
+            if (applyingModel != null)
+                applyingModel.IsApplying = false;
             modelFromRepo.IsApplying = true;
 
             _unit.SaveChanges();
