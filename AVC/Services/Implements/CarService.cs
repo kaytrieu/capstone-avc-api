@@ -295,9 +295,9 @@ namespace AVC.Services.Implements
             else
             {
                 carFromRepo.IsApproved = false;
-                _unit.SaveChanges();
             }
 
+            _unit.SaveChanges();
 
         }
 

@@ -255,7 +255,7 @@ namespace AVC.Services.Implements
                     Message = NotificationType.StaffManagedByNewManagerMessage(accountModel.FirstName + " " + accountModel.LastName)
                 };
 
-                WhenAdminChangeStaffManagedBy(newManagerMessageDto);
+                WhenAdminChangeStaffManagedBy(newManagerMessageDto, true);
             }
 
             return _mapper.Map<AccountReadDto>(accountModel);
@@ -463,9 +463,9 @@ namespace AVC.Services.Implements
             _unit.SaveChanges();
         }
 
-        private async void WhenAdminChangeStaffManagedBy(WhenAdminChangeStaffManagedByMessage message)
+        private async void WhenAdminChangeStaffManagedBy(WhenAdminChangeStaffManagedByMessage message, bool saveChange = false)
         {
-            AddNewNotification(message.ReceiverId, message.Message, NotificationType.StaffManagedBy);
+            AddNewNotification(message.ReceiverId, message.Message, NotificationType.StaffManagedBy, saveChange);
 
             await _hubContext.Clients.Group(HubConstant.accountGroup).SendAsync("WhenAdminChangeStaffManagedBy", message);
         }
