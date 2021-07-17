@@ -32,7 +32,7 @@ namespace AVC.Services.Implements
 
         public int GetUserNotificationCount(int accountId)
         {
-            var count = _unit.UserNotificationRepository.Count();
+            var count = _unit.UserNotificationRepository.GetAll(x => x.ReceiverId == accountId).Count();
 
             return count;
         }

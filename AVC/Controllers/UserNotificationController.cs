@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using AVC.Dtos.QueryFilter;
+using AVC.Dtos.ReponseDtos;
 using AVC.Dtos.UserNotificationDtos;
 using AVC.Repositories.Interface;
 using AVC.Services.Interfaces;
@@ -35,10 +36,10 @@ namespace AVC.Controllers
 
 
         [HttpGet("{receiverId}/count")]
-        public ActionResult<int> GetUserNotificationCount(int receiverId)
+        public ActionResult<ResponseDto> GetUserNotificationCount(int receiverId)
         {
             var dto = _userNotificationService.GetUserNotificationCount(receiverId);
-            return Ok(new { Result = dto });
+            return Ok(new ResponseDto(dto.ToString()));
         }
 
     }
