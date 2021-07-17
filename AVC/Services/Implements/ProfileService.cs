@@ -1,8 +1,10 @@
 ﻿using AutoMapper;
+using AVC.Hubs;
 using AVC.Repositories.Interface;
 using AVC.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
@@ -13,7 +15,7 @@ namespace AVC.Services.Implements
 {
     public class ProfileService : BaseService, IProfileService
     {
-        public ProfileService(IUnitOfWork unit, IMapper mapper, IConfiguration config, IUrlHelper urlHelper, IHttpContextAccessor httpContextAccessor) : base(unit, mapper, config, urlHelper, httpContextAccessor)
+        public ProfileService(IUnitOfWork unit, IMapper mapper, IConfiguration config, IUrlHelper urlHelper, IHttpContextAccessor httpContextAccessor, IHubContext<AVCHub> hubContext) : base(unit, mapper, config, urlHelper, httpContextAccessor, hubContext)
         {
         }
     }

@@ -3,11 +3,13 @@ using AVC.Dtos.AuthenticationDtos;
 using AVC.Dtos.ReponseDtos;
 using AVC.Extensions;
 using AVC.Extensions.Extensions;
+using AVC.Hubs;
 using AVC.Models;
 using AVC.Repositories.Interface;
 using AVC.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System;
@@ -24,8 +26,9 @@ namespace AVC.Services.Implements
     {
         private readonly IEmailSender _emailSender;
 
-        public AuthenticateService(IUnitOfWork unit, IMapper mapper, IConfiguration config, IEmailSender emailSender, IUrlHelper urlHelper, IHttpContextAccessor httpContextAccessor)
-        : base(unit, mapper, config, urlHelper, httpContextAccessor)
+        public AuthenticateService(IUnitOfWork unit, IMapper mapper, IConfiguration config, IHubContext<AVCHub> hubContext,
+            IEmailSender emailSender, IUrlHelper urlHelper, IHttpContextAccessor httpContextAccessor)
+        : base(unit, mapper, config, urlHelper, httpContextAccessor, hubContext)
         {
             _emailSender = emailSender;
         }

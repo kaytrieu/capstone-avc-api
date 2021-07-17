@@ -40,15 +40,6 @@ namespace AVC.Services.Implements
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public BaseService(IUnitOfWork unit, IMapper mapper, IConfiguration config, IUrlHelper urlHelper, IHttpContextAccessor httpContextAccessor)
-        {
-            this.unit = unit;
-            this.mapper = mapper;
-            this.config = config;
-            this.urlHelper = urlHelper;
-            this.httpContextAccessor = httpContextAccessor;
-        }
-
         internal void AddNewNotification(int receiverId, string message, string type, bool saveChange = false)
         {
             var noti = new UserNotification(receiverId, message, type);
