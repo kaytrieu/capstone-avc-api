@@ -275,12 +275,29 @@ namespace AVC.Services.Implements
                 {
                     carFromRepo.Image = FirebaseService.UploadFileToFirebaseStorage(formDto.ImageFile, ("CarImage" + carFromRepo.DeviceId).GetHashString(), "CarImage", _config).Result;
                 }
+
+                _unit.SaveChanges();
+
+                if (carFromRepo.ManagedBy != null)
+                {
+
+                    WhenAdminChangeCarManagedByMessage newManagerMessageDto = new WhenAdminChangeCarManagedByMessage
+                    {
+                        ReceiverId = (int)carFromRepo.ManagedBy,
+                        CarId = carFromRepo.Id,
+                        Message = NotificationType.CarManagedByNewManagerMessage(carFromRepo.Name)
+                    };
+
+                    WhenAdminChangeCarManagedBy(newManagerMessageDto);
+                }
+
             }
             else
             {
                 carFromRepo.IsApproved = false;
+                _unit.SaveChanges();
             }
-            _unit.SaveChanges();
+
 
         }
 

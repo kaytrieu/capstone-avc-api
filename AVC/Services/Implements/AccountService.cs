@@ -246,6 +246,18 @@ namespace AVC.Services.Implements
 
             accountModel = _unit.AccountRepository.Get(x => x.Id == accountModel.Id, x => x.Role, x => x.ManagedByNavigation);
 
+            if (accountModel.ManagedBy != null)
+            {
+                WhenAdminChangeStaffManagedByMessage newManagerMessageDto = new WhenAdminChangeStaffManagedByMessage
+                {
+                    ReceiverId = (int)accountModel.ManagedBy,
+                    StaffId = accountModel.Id,
+                    Message = NotificationType.StaffManagedByNewManagerMessage(accountModel.FirstName + " " + accountModel.LastName)
+                };
+
+                WhenAdminChangeStaffManagedBy(newManagerMessageDto);
+            }
+
             return _mapper.Map<AccountReadDto>(accountModel);
         }
 
@@ -382,13 +394,6 @@ namespace AVC.Services.Implements
                 throw new NotFoundException("Account not found");
             }
 
-            var manager = _unit.AccountRepository.Get(x => x.Id == dto.ManagerId);
-
-            if (manager == null)
-            {
-                throw new NotFoundException("Manager not found");
-            }
-
             if (account.ManagedBy != dto.ManagerId)
             {
                 if (account.ManagedBy != null)
@@ -409,10 +414,29 @@ namespace AVC.Services.Implements
                         assign.IsAvailable = false;
                         assign.RemoveAt = DateTime.UtcNow.AddHours(7);
                     }
+
+                    if(dto.ManagerId == null)
+                    {
+                        WhenAdminChangeStaffManagedByMessage managedByRemovedMessage = new WhenAdminChangeStaffManagedByMessage
+                        {
+                            ReceiverId = account.Id,
+                            StaffId = dto.StaffId,
+                            Message = NotificationType.StaffManagedByToNullStaffMessage()
+                        };
+
+                        WhenAdminChangeStaffManagedBy(managedByRemovedMessage);
+                    }
                 }
 
                 if (dto.ManagerId != null)
                 {
+                    var manager = _unit.AccountRepository.Get(x => x.Id == dto.ManagerId);
+
+                    if (manager == null)
+                    {
+                        throw new NotFoundException("Manager not found");
+                    }
+
                     WhenAdminChangeStaffManagedByMessage newManagerMessageDto = new WhenAdminChangeStaffManagedByMessage
                     {
                         ReceiverId = (int)dto.ManagerId,
@@ -421,16 +445,17 @@ namespace AVC.Services.Implements
                     };
 
                     WhenAdminChangeStaffManagedBy(newManagerMessageDto);
+
+                    WhenAdminChangeStaffManagedByMessage staffMessage = new WhenAdminChangeStaffManagedByMessage
+                    {
+                        ReceiverId = account.Id,
+                        StaffId = dto.StaffId,
+                        Message = NotificationType.StaffManagedByStaffMessage(manager.FirstName + " " + manager.LastName)
+                    };
+
+                    WhenAdminChangeStaffManagedBy(staffMessage);
                 }
-
-                WhenAdminChangeStaffManagedByMessage staffMessage = new WhenAdminChangeStaffManagedByMessage
-                {
-                    ReceiverId = account.Id,
-                    StaffId = dto.StaffId,
-                    Message = NotificationType.StaffManagedByStaffMessage(account.FirstName + " " + account.LastName)
-                };
-
-                WhenAdminChangeStaffManagedBy(staffMessage);
+                
             }
 
             account.ManagedBy = dto.ManagerId;

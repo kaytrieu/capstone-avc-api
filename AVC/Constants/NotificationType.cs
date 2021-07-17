@@ -23,6 +23,7 @@ namespace AVC.Constant
         public static string AssignCarOldStaffMessage(string name) => "A car " + name + " has been removed from you, please check for detail.";// To Staff
         public static string AssignCarNewStaffMessage(string name) => "You have just been assigned a car from your manager, please check for details"; // To Staff
         public static string StaffManagedByStaffMessage(string name) => "You have been assigned to manager " + name + ".";
+        public static string StaffManagedByToNullStaffMessage() => "You have been removed from your manager";
         public static string StaffManagedByNewManagerMessage(string name) => "Staff " + name + " has been assigned to you, please check for detail.";
         public static string StaffManagedByOldManagerMessage(string name) => "Staff " + name + " has been removed from you, please check for detail.";
         public static string CarManagedByNewManagerMessage(string name) => "A car " + name + " has been assigned to you, please check for detail.";
