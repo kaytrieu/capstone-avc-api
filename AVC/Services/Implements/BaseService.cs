@@ -29,7 +29,7 @@ namespace AVC.Services.Implements
 
 
 
-        public BaseService(IUnitOfWork unit, IMapper mapper, IConfiguration config, 
+        public BaseService(IUnitOfWork unit, IMapper mapper, IConfiguration config,
                             IUrlHelper urlHelper, IHttpContextAccessor httpContextAccessor, IHubContext<AVCHub> hubContext)
         {
             _unit = unit;
@@ -40,15 +40,11 @@ namespace AVC.Services.Implements
             _httpContextAccessor = httpContextAccessor;
         }
 
-        internal void AddNewNotification(int receiverId, string message, string type, bool saveChange = false)
+        internal void AddNewNotification(int receiverId, string message, string type)
         {
             var noti = new UserNotification(receiverId, message, type);
             _unit.UserNotificationRepository.Add(noti);
-
-            if (saveChange)
-            {
-                _unit.SaveChanges();
-            }
+            _unit.SaveChanges();
         }
     }
 }

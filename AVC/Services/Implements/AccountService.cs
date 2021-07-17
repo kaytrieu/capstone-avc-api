@@ -255,7 +255,7 @@ namespace AVC.Services.Implements
                     Message = NotificationType.StaffManagedByNewManagerMessage(accountModel.FirstName + " " + accountModel.LastName)
                 };
 
-                WhenAdminChangeStaffManagedBy(newManagerMessageDto, true);
+                WhenAdminChangeStaffManagedBy(newManagerMessageDto);
             }
 
             return _mapper.Map<AccountReadDto>(accountModel);
@@ -332,9 +332,10 @@ namespace AVC.Services.Implements
                     {
                         if (account.ManagedBy != null)
                         {
-                            WhenStaffDeactivatedMessage message =
-                                new WhenStaffDeactivatedMessage((int)account.ManagedBy, account.Id,
-                                NotificationType.DeactivatedAccountManagerMessage(account.FirstName + " " + account.LastName));
+                            WhenStaffDeactivatedMessage message = new WhenStaffDeactivatedMessage((int)account.ManagedBy, account.Id,
+                                            NotificationType.DeactivatedAccountManagerMessage(account.FirstName + " " + account.LastName));
+
+                            WhenStaffDeactivated(message);
 
                             account.ManagedBy = null;
                         }
@@ -415,7 +416,7 @@ namespace AVC.Services.Implements
                         assign.RemoveAt = DateTime.UtcNow.AddHours(7);
                     }
 
-                    if(dto.ManagerId == null)
+                    if (dto.ManagerId == null)
                     {
                         WhenAdminChangeStaffManagedByMessage managedByRemovedMessage = new WhenAdminChangeStaffManagedByMessage
                         {
@@ -455,7 +456,7 @@ namespace AVC.Services.Implements
 
                     WhenAdminChangeStaffManagedBy(staffMessage);
                 }
-                
+
             }
 
             account.ManagedBy = dto.ManagerId;
@@ -463,9 +464,9 @@ namespace AVC.Services.Implements
             _unit.SaveChanges();
         }
 
-        private async void WhenAdminChangeStaffManagedBy(WhenAdminChangeStaffManagedByMessage message, bool saveChange = false)
+        private async void WhenAdminChangeStaffManagedBy(WhenAdminChangeStaffManagedByMessage message)
         {
-            AddNewNotification(message.ReceiverId, message.Message, NotificationType.StaffManagedBy, saveChange);
+            AddNewNotification(message.ReceiverId, message.Message, NotificationType.StaffManagedBy);
 
             await _hubContext.Clients.Group(HubConstant.accountGroup).SendAsync("WhenAdminChangeStaffManagedBy", message);
         }

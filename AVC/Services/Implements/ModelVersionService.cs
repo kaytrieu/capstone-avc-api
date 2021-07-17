@@ -154,8 +154,10 @@ namespace AVC.Services.Implements
 
             model.ModelStatusId = ModelState.SucceededId;
 
+            var adminId = _unit.AccountRepository.Get(x => x.RoleId == Roles.AdminId).Id;
+
             //TODO: create notification, send signalR
-            var message = new WhenModelStatusChangedMessage(Roles.AdminId, model.Id, NotificationType.TrainSuccessMessage(model.Name));
+            var message = new WhenModelStatusChangedMessage(adminId, model.Id, NotificationType.TrainSuccessMessage(model.Name));
             WhenModelStatusChanged(message, NotificationType.TrainSuccess);
 
             _unit.SaveChanges();
@@ -172,8 +174,10 @@ namespace AVC.Services.Implements
 
             model.ModelStatusId = ModelState.TrainningId;
 
+            var adminId = _unit.AccountRepository.Get(x => x.RoleId == Roles.AdminId).Id;
+
             //TODO: create notification, send signalR
-            var message = new WhenModelStatusChangedMessage(Roles.AdminId, model.Id, NotificationType.TrainningMessage(model.Name));
+            var message = new WhenModelStatusChangedMessage(adminId, model.Id, NotificationType.TrainningMessage(model.Name));
             WhenModelStatusChanged(message, NotificationType.TrainSuccess);
 
             _unit.SaveChanges();
@@ -190,8 +194,10 @@ namespace AVC.Services.Implements
 
             model.ModelStatusId = ModelState.FailedId;
 
+            var adminId = _unit.AccountRepository.Get(x => x.RoleId == Roles.AdminId).Id;
+
             //TODO: create notification, send signalR
-            var message = new WhenModelStatusChangedMessage(Roles.AdminId, model.Id, NotificationType.TrainFailedMessage(model.Name, failedMessage));
+            var message = new WhenModelStatusChangedMessage(adminId, model.Id, NotificationType.TrainFailedMessage(model.Name, failedMessage));
             WhenModelStatusChanged(message, NotificationType.TrainSuccess);
 
             _unit.SaveChanges();
