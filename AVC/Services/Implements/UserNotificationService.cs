@@ -32,7 +32,7 @@ namespace AVC.Services.Implements
 
         public int GetUserNotificationCount(int accountId)
         {
-            var count = _unit.UserNotificationRepository.GetAll(x => x.ReceiverId == accountId).Count();
+            var count = _unit.UserNotificationRepository.GetAll(x => x.ReceiverId == accountId && !x.IsRead).Count();
 
             return count;
         }
@@ -43,6 +43,13 @@ namespace AVC.Services.Implements
             var dtoList = _mapper.Map<IEnumerable<UserNotificationReadDto>>(notiList.Result);
 
             var response = new PagingResponseDto<UserNotificationReadDto>(dtoList, filter.Page, filter.Limit);
+
+            foreach (var noti in response.Result)
+            {
+                notiList.Result.Where(x => x.Id == noti.Id).FirstOrDefault().IsRead = true;
+            }
+
+            _unit.SaveChanges();
 
             if (filter.Limit > 0)
             {
