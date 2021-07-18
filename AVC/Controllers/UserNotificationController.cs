@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using AVC.Dtos.PagingDtos;
 using AVC.Dtos.QueryFilter;
 using AVC.Dtos.ReponseDtos;
 using AVC.Dtos.UserNotificationDtos;
@@ -28,18 +29,18 @@ namespace AVC.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet]
-        public ActionResult<IEnumerable<UserNotificationReadDto>> GetUserNotification([FromQuery] UserNotificationQueryFilter filter)
+        public ActionResult<PagingResponseDto<UserNotificationReadDto>> GetUserNotification([FromQuery] UserNotificationQueryFilter filter)
         {
-            var dto = _userNotificationService.GetUserNotificationList(filter);
-            return Ok(new { Result = dto });
+            var response = _userNotificationService.GetUserNotificationList(filter);
+            return Ok(response);
         }
 
 
         [HttpGet("{receiverId}/count")]
-        public ActionResult<ResponseDto> GetUserNotificationCount(int receiverId)
+        public ActionResult<ResponseIntDto> GetUserNotificationCount(int receiverId)
         {
             var dto = _userNotificationService.GetUserNotificationCount(receiverId);
-            return Ok(new ResponseDto(dto.ToString()));
+            return Ok(new ResponseIntDto(dto));
         }
 
     }

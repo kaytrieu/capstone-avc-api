@@ -5,15 +5,15 @@ using System.Threading.Tasks;
 
 namespace AVC.Dtos.HubMessages
 {
-    public class WhenStaffDeactivatedMessage
+    public class WhenManagerDeactivatedMessage
     {
-        public int ReceiverId { get; set; }
+        public List<int> ReceiverIdList { get; set; }
         public int DeactivatedId { get; set; }
         public string Message { get; set; }
 
-        public WhenStaffDeactivatedMessage(int receiverId, int deactivatedId, string message)
+        public WhenManagerDeactivatedMessage(List<int> receiverIdList, int deactivatedId, string message)
         {
-            ReceiverId = receiverId;
+            ReceiverIdList = receiverIdList;
             DeactivatedId = deactivatedId;
             Message = message;
         }

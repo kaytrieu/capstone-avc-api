@@ -19,4 +19,18 @@ namespace AVC.Dtos.ReponseDtos
             return JsonConvert.SerializeObject(this);
         }
     }
+
+    public class ResponseIntDto
+    {
+        public int Message { get; set; }
+
+        public ResponseIntDto(int message)
+        {
+            Message = message;
+        }
+        public override string ToString()
+        {
+            return JsonConvert.SerializeObject(this);
+        }
+    }
 }
