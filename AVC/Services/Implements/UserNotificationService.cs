@@ -39,7 +39,7 @@ namespace AVC.Services.Implements
 
         public PagingResponseDto<UserNotificationReadDto> GetUserNotificationList(UserNotificationQueryFilter filter)
         {
-            var notiList = _unit.UserNotificationRepository.GetAll(filter.Page, filter.Limit, x => x.ReceiverId == filter.ReceiverId);
+            var notiList = _unit.UserNotificationRepository.GetAllWithOrderedDecs(filter.Page, filter.Limit, x => x.ReceiverId == filter.ReceiverId, x => x.CreatedAt);
             var dtoList = _mapper.Map<IEnumerable<UserNotificationReadDto>>(notiList.Result);
 
             var response = new PagingResponseDto<UserNotificationReadDto>(dtoList, filter.Page, filter.Limit);
