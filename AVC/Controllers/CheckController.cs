@@ -24,10 +24,8 @@ namespace AVC.Controllers
 
             if (myFile != null && myFile.Extension.Contains("json"))
             {
-                var stream = myFile.OpenText();
-                var content = stream.ReadToEnd();
-                stream.Close();
-                return Ok(content);
+                var url = "https://avc-api.scm.azurewebsites.net/api/vfs/LogFiles/http/RawLogs/" + myFile.Name;
+                return Redirect(url);
             }
 
             return Ok();
