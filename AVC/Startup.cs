@@ -69,7 +69,7 @@ namespace AVC
             services.AddSignalR(o =>
             {
                 o.EnableDetailedErrors = true;
-            }).AddAzureSignalR("Endpoint=https://avc-signalr-hub.service.signalr.net;AccessKey=Qzv39/9C+p7seRArYZWRQf7JofCrfJj4oy8Kkcr7CRA=;Version=1.0;");
+            }).AddAzureSignalR("Endpoint=https://avc-signalr.service.signalr.net;AccessKey=hSvn0aSRiNGSc+shWGNFUX9blLhJ+7s9Ez5G3WKhrhY=;Version=1.0;");
 
             int apiVersion = Configuration.GetValue<int>("Version");
 
