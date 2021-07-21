@@ -367,7 +367,7 @@ namespace AVC.Services.Implements
         {
             AddNewNotification(message.ReceiverId, message.Message, NotificationType.DeactivatedAccount);
 
-            await _hubContext.Clients.Group(HubConstant.accountGroup).SendAsync("WhenAccountDeactivated", message);
+            await _hubContext.Clients.Group(HubConstant.accountGroup).SendAsync("WhenStaffDeactivated", message);
         }
 
         private async void WhenManagerDeactivated(WhenManagerDeactivatedMessage message)
@@ -377,7 +377,7 @@ namespace AVC.Services.Implements
                 AddNewNotification(receiverId, message.Message, NotificationType.DeactivatedAccount);
             }
 
-            await _hubContext.Clients.Group(HubConstant.accountGroup).SendAsync("WhenAccountDeactivated", message);
+            await _hubContext.Clients.Group(HubConstant.accountGroup).SendAsync("WhenManagerDeactivated", message);
         }
 
         private async void WhenThisAccountDeactivated(int receiverId)
