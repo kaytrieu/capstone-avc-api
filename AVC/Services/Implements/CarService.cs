@@ -490,6 +490,11 @@ namespace AVC.Services.Implements
 
                     carConnectedMessage = new CarConnectedMessage(accountIdList, carFromRepo.Id);
                     carMessageDto = _mapper.Map<CarMessageDto>(carFromRepo);
+
+                    var modelRepo = _unit.ModelVersionRepository.Get(x => x.IsApplying);
+
+                    carMessageDto.ModelId = modelRepo.Id;
+                    carMessageDto.ModelURL = modelRepo.ModelUrl;
                 }
             }
 
