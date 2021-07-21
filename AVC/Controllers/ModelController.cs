@@ -56,6 +56,14 @@ namespace AVC.Controllers
             return Ok(respone);
         }
 
+        [HttpGet("applyingId")]
+        public ActionResult<int> GetApplyingModelId()
+        {
+            var respone = _modelService.GetApplyingModel().Id;
+
+            return Ok(respone);
+        }
+
 
         [HttpPut("{id}/applying")]
         public ActionResult ApplyModel(int id)
