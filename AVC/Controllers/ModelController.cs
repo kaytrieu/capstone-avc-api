@@ -3,6 +3,7 @@ using AVC.Dtos.PagingDtos;
 using AVC.Dtos.QueryFilter;
 using AVC.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AVC.Controllers
@@ -46,8 +47,8 @@ namespace AVC.Controllers
 
             return Ok(respone);
 
-        }        
-        
+        }
+
         [HttpGet("applying")]
         public ActionResult<ModelReadDto> GetApplyingModel()
         {
@@ -73,10 +74,10 @@ namespace AVC.Controllers
             return Ok();
         }
 
-        [HttpPut("{id}/succession")]
-        public ActionResult SetModelSuccess(int id)
+        [HttpPost("{id}/succession")]
+        public ActionResult SetModelSuccess(int id, IFormFile modelFile)
         {
-            _modelService.ModelTrainSuccess(id);
+            _modelService.ModelTrainSuccess(id, modelFile);
 
             return Ok();
         }

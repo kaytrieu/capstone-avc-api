@@ -1,6 +1,7 @@
 ﻿using AVC.Dtos.ModelDtos;
 using AVC.Dtos.PagingDtos;
 using AVC.Dtos.QueryFilter;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,7 +18,7 @@ namespace AVC.Services.Interfaces
         PagingResponseDto<ModelReadDto> GetModelList(ModelQueryFilter filter);
         void ModelTrainFailed(int modelId, string failedMessage);
         void ModelTraining(int modelId);
-        void ModelTrainSuccess(int modelId);
+        void ModelTrainSuccess(int modelId, IFormFile modelFile);
         void UpdateModel(int modelId, ModelUpdateDto modelUpdateDto);
     }
 }

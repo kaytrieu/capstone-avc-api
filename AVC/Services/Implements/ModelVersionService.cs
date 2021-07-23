@@ -23,6 +23,8 @@ using AVC.Extensions.Extensions;
 using Microsoft.AspNetCore.SignalR;
 using AVC.Hubs;
 using AVC.Dtos.HubMessages;
+using AVC.Service;
+using AVC.Dtos.ReponseDtos;
 
 namespace AVC.Services.Implements
 {
@@ -143,16 +145,18 @@ namespace AVC.Services.Implements
             _unit.SaveChanges();
         }
 
-        public void ModelTrainSuccess(int modelId)
+        public void ModelTrainSuccess(int modelId, IFormFile modelFile)
         {
             var model = _unit.ModelVersionRepository.Get(x => x.Id == modelId);
 
             if (model == null)
             {
                 throw new Extensions.NotFoundException("Model not found");
-            }
+            } 
 
             model.ModelStatusId = ModelState.SucceededId;
+
+            model.ModelUrl = UploadModel(modelFile, modelId);
 
             var adminId = _unit.AccountRepository.Get(x => x.RoleId == Roles.AdminId).Id;
 
@@ -161,6 +165,22 @@ namespace AVC.Services.Implements
             WhenModelStatusChanged(message, NotificationType.TrainSuccess);
 
             _unit.SaveChanges();
+        }
+
+        private string UploadModel(IFormFile model, int id)
+        {
+            string imageUrl = string.Empty;
+
+            if (model != null && model.Length > 0)
+            {
+                var fileName = model.FileName;
+                imageUrl = FirebaseService.UploadFileToFirebaseStorage(model.OpenReadStream(), fileName, "Models", _config).Result;
+            }else
+            {
+                throw new BadRequestException("ModelFile not found");
+            }
+
+            return imageUrl;
         }
 
         public void ModelTraining(int modelId)

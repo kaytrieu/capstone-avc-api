@@ -37,6 +37,9 @@ namespace AVC.Extension
                     else if (exception?.Error is ConflictEntityException)
                     {
                         context.Response.StatusCode = (int)HttpStatusCode.Conflict;
+                    }else if (exception?.Error is BadRequestException)
+                    {
+                        context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
                     }
                     else
                     {
