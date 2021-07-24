@@ -198,7 +198,7 @@ namespace AVC.Services.Implements
 
             //TODO: create notification, send signalR
             var message = new WhenModelStatusChangedMessage(adminId, model.Id, NotificationType.TrainningMessage(model.Name));
-            WhenModelStatusChanged(message, NotificationType.TrainSuccess);
+            WhenModelStatusChanged(message, NotificationType.Trainning);
 
             _unit.SaveChanges();
         }
@@ -218,7 +218,7 @@ namespace AVC.Services.Implements
 
             //TODO: create notification, send signalR
             var message = new WhenModelStatusChangedMessage(adminId, model.Id, NotificationType.TrainFailedMessage(model.Name, failedMessage));
-            WhenModelStatusChanged(message, NotificationType.TrainSuccess);
+            WhenModelStatusChanged(message, NotificationType.TrainFailed);
 
             _unit.SaveChanges();
         }
