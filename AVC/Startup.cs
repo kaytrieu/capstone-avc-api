@@ -102,6 +102,7 @@ namespace AVC
             services.AddScoped<IAccountService, AccountService>();
             services.AddScoped<IAuthenticateService, AuthenticateService>();
             services.AddScoped<ICarService, CarService>();
+            services.AddScoped<IDashBoardService, DashBoardService>();
             services.AddScoped<IProfileService, ProfileService>();
             services.AddScoped<IAssignCarService, AssignCarService>();
             services.AddScoped<IIssueService, IssueService>();

@@ -52,7 +52,7 @@ namespace AVC.Controllers
         }
 
         [HttpPost()]
-        public ActionResult<IssueReadDto> PostStaffAccount([FromForm] IssueCreateDto dto, IFormFile image)
+        public ActionResult<IssueReadDto> PostNewIssue([FromForm] IssueCreateDto dto, IFormFile image)
         {
             IssueReadDto readDto = _issueService.CreateNewIssue(dto,image);
 

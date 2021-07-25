@@ -204,6 +204,7 @@ namespace AVC.Services.Implements
                     if (car.ManagedBy != null)
                     {
                         receiverIdList.Add((int)car.ManagedBy);
+                        car.ManagedBy = null;
                     }
 
                     var assignedList = car.AssignedCar.Where(x => x.IsAvailable == true);
@@ -464,6 +465,7 @@ namespace AVC.Services.Implements
             if (carFromRepo == null)
             {
                 CreateNewCarByDevice(deviceId);
+                _hubContext.Clients.Group(HubConstant.accountGroup).SendAsync("WhenNewCarRegistered", "It's a new cả registered into system, please check for detail.");
             }
             else
             {
