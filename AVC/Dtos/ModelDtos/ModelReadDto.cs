@@ -11,7 +11,8 @@ namespace AVC.Dtos.ModelDtos
         public int Id { get; set; }
         public string Name { get; set; }
         public string ModelUrl { get; set; }
-
+        public double? Loss { get; set; }
+        public double? Map { get; set; }
         public int? ImageCount { get; set; }
         public string StatisticUrl { get; set; }
         public DateTime CreatedAt { get; set; }

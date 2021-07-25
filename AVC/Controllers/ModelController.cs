@@ -82,6 +82,14 @@ namespace AVC.Controllers
             return Ok();
         }
 
+        [HttpPut("{id}")]
+        public ActionResult UpdateMode(int id, ModelUpdateDto modelUpdateDto)
+        {
+            _modelService.UpdateModel(id, modelUpdateDto);
+
+            return Ok();
+        }
+
         [HttpPut("{id}/failure")]
         public ActionResult SetModelFail(int id, string failureMessage)
         {

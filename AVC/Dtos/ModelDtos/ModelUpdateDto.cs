@@ -8,11 +8,8 @@ namespace AVC.Dtos.ModelDtos
 {
     public class ModelUpdateDto
     {
-        [Required]
         public double? Loss { get; set; }
-        [Required]
         public double? Map { get; set; }
-        [Required]
         public string StatisticUrl { get; set; }
     }
 }
