@@ -452,6 +452,7 @@ namespace AVC.Services.Implements
             Car car = new Car { DeviceId = deviceId, ConfigUrl = configurl };
             _unit.CarRepository.Add(car);
             _unit.SaveChanges();
+            _hubContext.Clients.Group(HubConstant.accountGroup).SendAsync("WhenNewCarRegistered", "It's a new car registered into system, please check for detail.");
         }
 
         public HandleCarConnectedObject HandleCarConnected(string deviceId)
@@ -465,7 +466,6 @@ namespace AVC.Services.Implements
             if (carFromRepo == null)
             {
                 CreateNewCarByDevice(deviceId);
-                _hubContext.Clients.Group(HubConstant.accountGroup).SendAsync("WhenNewCarRegistered", "It's a new cả registered into system, please check for detail.");
             }
             else
             {
