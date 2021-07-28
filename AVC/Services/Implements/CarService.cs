@@ -345,7 +345,7 @@ namespace AVC.Services.Implements
 
             if (config != null)
             {
-                carFromRepo.ConfigUrl = FirebaseService.UploadFileToFirebaseStorage(config, ("CarConfig" + carFromRepo.Id).GetHashString(), "CarConfig", _config).Result;
+                carFromRepo.ConfigUrl = FirebaseService.UploadFileToFirebaseStorage(config, ("CarConfig" + carFromRepo.DeviceId).GetHashString(), "CarConfig", _config).Result;
             }
 
             _unit.SaveChanges();
