@@ -145,7 +145,7 @@ namespace AVC.Services.Implements
             _unit.SaveChanges();
         }
 
-        public void ModelTrainSuccess(int modelId, IFormFile modelFile)
+        public void ModelTrainSuccess(int modelId, IFormFile modelFile, IFormFile statisticFile)
         {
             var model = _unit.ModelVersionRepository.Get(x => x.Id == modelId);
 
@@ -157,6 +157,7 @@ namespace AVC.Services.Implements
             model.ModelStatusId = ModelState.SucceededId;
 
             model.ModelUrl = UploadModel(modelFile, modelId);
+            model.StatisticUrl = UploadStatistic(statisticFile, modelId);
 
             var adminId = _unit.AccountRepository.Get(x => x.RoleId == Roles.AdminId).Id;
 
@@ -178,6 +179,23 @@ namespace AVC.Services.Implements
             }else
             {
                 throw new BadRequestException("ModelFile not found");
+            }
+
+            return imageUrl;
+        }
+
+        private string UploadStatistic(IFormFile statistic, int id)
+        {
+            string imageUrl = string.Empty;
+
+            if (statistic != null && statistic.Length > 0)
+            {
+                var fileName = id.ToString().GetHashString() + ".png";
+                imageUrl = FirebaseService.UploadFileToFirebaseStorage(statistic.OpenReadStream(), fileName, "Models", _config).Result;
+            }
+            else
+            {
+                return null;
             }
 
             return imageUrl;
@@ -296,7 +314,6 @@ namespace AVC.Services.Implements
                                     })
                                 }
                             };
-
 
                             // User information to create a merge commit
                             var signature = new LibGit2Sharp.Signature(

@@ -18,7 +18,7 @@ namespace AVC.Services.Interfaces
         PagingResponseDto<ModelReadDto> GetModelList(ModelQueryFilter filter);
         void ModelTrainFailed(int modelId, string failedMessage);
         void ModelTraining(int modelId);
-        void ModelTrainSuccess(int modelId, IFormFile modelFile);
+        void ModelTrainSuccess(int modelId, IFormFile modelFile, IFormFile statisticFile);
         void UpdateModel(int modelId, ModelUpdateDto modelUpdateDto);
     }
 }

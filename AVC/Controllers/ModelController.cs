@@ -75,9 +75,9 @@ namespace AVC.Controllers
         }
 
         [HttpPost("{id}/succession")]
-        public ActionResult SetModelSuccess(int id, IFormFile modelFile)
+        public ActionResult SetModelSuccess(int id, IFormFile modelFile, IFormFile statisticFile)
         {
-            _modelService.ModelTrainSuccess(id, modelFile);
+            _modelService.ModelTrainSuccess(id, modelFile, statisticFile);
 
             return Ok();
         }
