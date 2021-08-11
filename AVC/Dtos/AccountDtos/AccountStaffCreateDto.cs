@@ -11,19 +11,14 @@ namespace AVC.Dtos.AccountDtos
         {
             Salt = BCrypt.Net.BCrypt.GenerateSalt();
             RoleId = Roles.StaffId;
+            Password = BCrypt.Net.BCrypt.HashPassword("123123", Salt);
         }
 
         [Required]
         [EmailAddress]
         [MaxLength(255)]
         public string Email { get; set; }
-        private string password;
-        [Required]
-        public string Password
-        {
-            get { return password; }
-            set { password = BCrypt.Net.BCrypt.HashPassword(value, Salt); }
-        }
+        public string Password { get;}
         public string Salt { get; }
         [Required]
         public string FirstName { get; set; }
@@ -32,7 +27,7 @@ namespace AVC.Dtos.AccountDtos
         [JsonIgnore]
         public int RoleId { get; }
         [Phone]
-        [MaxLength(11)]
+        [MaxLength(9)][MinLength(9)]
         public string Phone { get; set; }
         public int? ManagedBy { get; set; }
     }

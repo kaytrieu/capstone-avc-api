@@ -9,7 +9,7 @@ namespace AVC.Dtos.ProfileDtos
 {
     public class ProfileUpdateDto
     {
-        [MaxLength(11)]
+        [MaxLength(9)][MinLength(9)]
         [Phone]
         public string Phone { get; set; }
         public IFormFile AvatarImage { get; set; }

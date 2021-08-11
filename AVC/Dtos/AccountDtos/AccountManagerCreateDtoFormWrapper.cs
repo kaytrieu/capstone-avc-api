@@ -15,13 +15,11 @@ namespace AVC.Dtos.AccountDtos
         [MaxLength(255)]
         public string Email { get; set; }
         [Required]
-        public string Password { get; set; }
-        [Required]
         public string FirstName { get; set; }
         [Required]
         public string LastName { get; set; }
         [Phone]
-        [MaxLength(11)]
+        [MaxLength(9)][MinLength(9)]
         public string Phone { get; set; }
     }
 }
