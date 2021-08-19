@@ -274,7 +274,7 @@ namespace AVC.Services.Implements
 
                 if (formDto.ImageFile != null)
                 {
-                    carFromRepo.Image = FirebaseService.UploadFileToFirebaseStorage(formDto.ImageFile, ("CarImage" + carFromRepo.DeviceId).GetHashString(), "CarImage", _config).Result;
+                    carFromRepo.Image = FirebaseService.UploadFileToFirebaseStorage(formDto.ImageFile, ("CarImage" + carFromRepo.Id).GetHashString(), "CarImage", _config).Result;
                 }
 
                 _unit.SaveChanges();
@@ -328,7 +328,7 @@ namespace AVC.Services.Implements
 
             if (image != null)
             {
-                carFromRepo.Image = FirebaseService.UploadFileToFirebaseStorage(image, ("CarImage" + carFromRepo.DeviceId).GetHashString(), "CarImage", _config).Result;
+                carFromRepo.Image = FirebaseService.UploadFileToFirebaseStorage(image, ("CarImage" + carFromRepo.Id).GetHashString(), "CarImage", _config).Result;
             }
 
             _unit.SaveChanges();
@@ -345,7 +345,7 @@ namespace AVC.Services.Implements
 
             if (config != null)
             {
-                carFromRepo.ConfigUrl = FirebaseService.UploadFileToFirebaseStorage(config, ("CarConfig" + carFromRepo.DeviceId).GetHashString(), "CarConfig", _config).Result;
+                carFromRepo.ConfigUrl = FirebaseService.UploadFileToFirebaseStorage(config, ("CarConfig" + carFromRepo.Id).GetHashString(), "CarConfig", _config).Result;
             }
 
             _unit.SaveChanges();
@@ -437,6 +437,12 @@ namespace AVC.Services.Implements
             var configurl = String.Empty;
             var webRequest = WebRequest.Create(defaultConfgiUrl);
 
+
+
+            Car car = new Car { DeviceId = deviceId};
+            _unit.CarRepository.Add(car);
+            _unit.SaveChanges();
+
             using (var response = webRequest.GetResponse())
             using (var content = response.GetResponseStream())
             using (var reader = new StreamReader(content))
@@ -446,12 +452,12 @@ namespace AVC.Services.Implements
                 byte[] byteArray = Encoding.ASCII.GetBytes(strContent);
                 MemoryStream stream = new MemoryStream(byteArray);
                 string fileExtension = contentType[(contentType.IndexOf('/') + 1)..];
-                configurl = FirebaseService.UploadFileToFirebaseStorage(stream, ("CarConfig" + deviceId).GetHashString() + "." + fileExtension, "CarConfig", _config).Result;
+                configurl = FirebaseService.UploadFileToFirebaseStorage(stream, ("CarConfig" + car.Id).GetHashString() + "." + fileExtension, "CarConfig", _config).Result;
             }
 
-            Car car = new Car { DeviceId = deviceId, ConfigUrl = configurl };
-            _unit.CarRepository.Add(car);
+            car.ConfigUrl = configurl;
             _unit.SaveChanges();
+
             _hubContext.Clients.Group(HubConstant.accountGroup).SendAsync("WhenNewCarRegistered", "It's a new car registered into system, please check for detail.");
         }
 
